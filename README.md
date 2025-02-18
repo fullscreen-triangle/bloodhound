@@ -1,11 +1,11 @@
-# Science Platform: Distributed Scientific Computing Framework
+# Bloodhound: Distributed Scientific Computing Framework
 
 [![Python Version](https://img.shields.io/pypi/pyversions/science-platform.svg)](https://pypi.org/project/science-platform/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 ## Overview
 
-Science Platform revolutionizes scientific data analysis by combining three key innovations:
+Bloodhound revolutionizes scientific data analysis by combining three key innovations:
 1. Distributed computing that keeps data at its source
 2. Federated learning for privacy-preserving knowledge sharing
 3. Conversational AI interface for accessible scientific analysis
