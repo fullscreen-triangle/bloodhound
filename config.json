@@ -1,0 +1,39 @@
+{
+    "backend": {
+        "host": "localhost",
+        "port": 8000,
+        "reload": true
+    },
+    "frontend": {
+        "host": "localhost",
+        "port": 3000,
+        "dev_mode": true
+    },
+    "logging": {
+        "level": "INFO",
+        "file": "logs/app.log"
+    },
+    "data_dir": "data",
+    "auto_open_browser": true,
+    "experimental_templates": {
+        "base_dir": "config/experimental_templates",
+        "validation_required": true
+    },
+    "task_manager": {
+        "max_workers": 4,
+        "state_path": "data/tasks/state.json"
+    },
+    "change_tracker": {
+        "network_path": "data/tracking/network.json"
+    },
+    "federated_learning": {
+        "privacy_budget": 1.0,
+        "local_epochs": 5,
+        "batch_size": 32,
+        "learning_rate": 0.001,
+        "min_samples_per_client": 10,
+        "secure_aggregation": true,
+        "aggregation_rounds": 10,
+        "participation_threshold": 0.7
+    }
+}

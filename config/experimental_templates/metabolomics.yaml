@@ -1,0 +1,164 @@
+name: "Metabolomics Experiment"
+version: "1.0"
+description: "Template for metabolomics experiments using LC-MS or GC-MS data"
+
+required_files:
+  - name: "raw_data"
+    type: ["mzML", "mzXML", "CDF"]
+    description: "Raw mass spectrometry data files"
+    
+  - name: "metadata"
+    type: "csv"
+    description: "Sample metadata and experimental conditions"
+    
+  - name: "standards"
+    type: "csv"
+    optional: true
+    description: "Internal standards information"
+
+parameters:
+  ms_type:
+    type: "string"
+    options: ["LC-MS", "GC-MS"]
+    default: "LC-MS"
+    description: "Type of mass spectrometry used"
+    
+  rt_tolerance:
+    type: "float"
+    default: 0.5
+    range: [0.1, 2.0]
+    description: "Retention time tolerance in minutes"
+    
+  mz_tolerance:
+    type: "float"
+    default: 0.01
+    range: [0.001, 0.1]
+    description: "m/z tolerance in Da"
+    
+  min_intensity:
+    type: "float"
+    default: 1000
+    range: [100, 10000]
+    description: "Minimum peak intensity threshold"
+    
+  normalization_method:
+    type: "string"
+    options: ["TIC", "IS", "QC", "none"]
+    default: "TIC"
+    description: "Data normalization method"
+
+pipeline:
+  steps:
+    - name: "peak_detection"
+      tool: "xcms"
+      required: true
+      parameters:
+        - "rt_tolerance"
+        - "mz_tolerance"
+        - "min_intensity"
+      
+    - name: "alignment"
+      tool: "xcms"
+      depends_on: ["peak_detection"]
+      required: true
+      
+    - name: "normalization"
+      tool: "custom"
+      depends_on: ["alignment"]
+      parameters:
+        - "normalization_method"
+      required: true
+      
+    - name: "annotation"
+      tool: "CAMERA"
+      depends_on: ["normalization"]
+      required: true
+      
+    - name: "identification"
+      tool: "metaboanalyst"
+      depends_on: ["annotation"]
+      required: true
+
+quality_control:
+  - name: "blank_samples"
+    required: true
+    description: "Blank samples for background subtraction"
+    
+  - name: "qc_samples"
+    required: true
+    description: "Pooled QC samples for monitoring"
+    
+  - name: "retention_markers"
+    required: false
+    description: "Retention time markers"
+
+output:
+  required:
+    - name: "feature_table"
+      type: "csv"
+      description: "Aligned and normalized feature table"
+      
+    - name: "identified_metabolites"
+      type: "csv"
+      description: "List of identified metabolites"
+      
+    - name: "quality_metrics"
+      type: "csv"
+      description: "Quality control metrics"
+      
+  optional:
+    - name: "molecular_networks"
+      type: "graphml"
+      description: "Molecular networking results"
+      
+    - name: "pathway_analysis"
+      type: "csv"
+      description: "Metabolic pathway analysis results"
+
+statistical_analysis:
+  methods:
+    - name: "univariate"
+      tools: ["t-test", "ANOVA"]
+      required: true
+      
+    - name: "multivariate"
+      tools: ["PCA", "PLS-DA", "OPLS-DA"]
+      required: true
+      
+    - name: "feature_selection"
+      tools: ["VIP", "Random Forest"]
+      required: false
+
+visualization:
+  required:
+    - name: "pca_plot"
+      type: "scatter"
+      description: "PCA scores plot"
+      
+    - name: "intensity_heatmap"
+      type: "heatmap"
+      description: "Feature intensity heatmap"
+      
+    - name: "volcano_plot"
+      type: "scatter"
+      description: "Volcano plot for differential analysis"
+
+validation:
+  - type: "file_presence"
+    files: ["raw_data", "metadata"]
+    
+  - type: "parameter_range"
+    parameters: ["rt_tolerance", "mz_tolerance", "min_intensity"]
+    
+  - type: "tool_availability"
+    tools: ["xcms", "CAMERA", "metaboanalyst"]
+    
+  - type: "qc_requirements"
+    checks: ["blank_samples", "qc_samples"]
+
+documentation:
+  required:
+    - "experimental_protocol"
+    - "sample_preparation"
+    - "instrument_parameters"
+    - "data_processing_parameters"

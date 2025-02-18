@@ -1,0 +1,62 @@
+name: "Genomics Experiment"
+version: "1.0"
+description: "Template for genomics experiments"
+
+required_files:
+  - name: "raw_reads"
+    type: "fastq"
+    paired: true
+    description: "Raw sequencing reads"
+    
+  - name: "reference_genome"
+    type: "fasta"
+    description: "Reference genome sequence"
+
+parameters:
+  quality_threshold:
+    type: "float"
+    default: 30
+    range: [0, 40]
+    description: "Minimum quality score for reads"
+    
+  alignment_tool:
+    type: "string"
+    options: ["bwa", "bowtie2", "minimap2"]
+    default: "bwa"
+    description: "Tool for genome alignment"
+
+pipeline:
+  steps:
+    - name: "quality_control"
+      tool: "fastqc"
+      required: true
+      
+    - name: "alignment"
+      tool: "${alignment_tool}"
+      depends_on: ["quality_control"]
+      required: true
+      
+    - name: "variant_calling"
+      tool: "gatk"
+      depends_on: ["alignment"]
+      required: true
+
+output:
+  required:
+    - name: "aligned_reads"
+      type: "bam"
+      description: "Aligned sequencing reads"
+      
+    - name: "variants"
+      type: "vcf"
+      description: "Called variants"
+
+validation:
+  - type: "file_presence"
+    files: ["raw_reads", "reference_genome"]
+    
+  - type: "parameter_range"
+    parameter: "quality_threshold"
+    
+  - type: "tool_availability"
+    tools: ["fastqc", "${alignment_tool}", "gatk"]
