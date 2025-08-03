@@ -1,5 +1,9 @@
 # Bloodhound: Distributed Scientific Computing Framework
 
+<p align="center">
+  <img src="assets/images/Cathedrale-clermont-vue-de-jaude.jpg" alt="Logo" width="300"/>
+</p>
+
 [![Python Version](https://img.shields.io/pypi/pyversions/science-platform.svg)](https://pypi.org/project/science-platform/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
