@@ -1,50 +1,117 @@
-# Core dependencies
-fastapi>=0.68.0
-uvicorn>=0.15.0
-pydantic>=1.8.2
-python-multipart>=0.0.5
-python-jose[cryptography]>=3.3.0
-passlib[bcrypt]>=1.7.4
-PyYAML>=6.0
-networkx>=2.6.3
+# Bloodhound Virtual Machine - Python Dependencies
+# Consciousness-Aware Scientific Computing Platform
 
-# Data processing
-numpy>=1.21.0
-pandas>=1.3.0
-scipy>=1.7.0
-scikit-learn>=0.24.2
+# === Core Scientific Computing ===
+numpy>=1.24.0
+scipy>=1.10.0
+pandas>=2.0.0
+polars>=0.20.0
+pyarrow>=14.0.0
 
-# Visualization
-plotly>=5.1.0
-kaleido>=0.2.1  # for static image export
+# === Machine Learning and AI ===
+scikit-learn>=1.3.0
+torch>=2.1.0
+transformers>=4.35.0
+datasets>=2.14.0
+accelerate>=0.24.0
+peft>=0.6.0  # For LoRA adaptation in Purpose Framework
+tokenizers>=0.15.0
 
-# Database
-sqlalchemy>=1.4.23
-alembic>=1.7.1
-psycopg2-binary>=2.9.1
+# === Deep Learning Backends ===
+onnxruntime>=1.16.0
 
-# Security
-cryptography>=3.4.7
-jwt>=1.3.1
-bcrypt>=3.2.0
+# === Bioinformatics ===
+biopython>=1.81
+pysam>=0.22.0
+pyvcf>=0.6.8
+scanpy>=1.9.0  # Single-cell analysis
+anndata>=0.10.0
 
-# File handling
-aiofiles>=0.7.0
-python-magic>=0.4.24
-watchdog>=2.1.3
+# === Mass Spectrometry and Metabolomics ===
+pyteomics>=4.6.0
+pymzml>=2.5.0
+matchms>=0.20.0
 
-# Testing
-pytest>=6.2.5
-pytest-asyncio>=0.15.1
-pytest-cov>=2.12.1
-httpx>=0.18.2
+# === Networking and Async ===
+aiohttp>=3.9.0
+asyncio-mqtt>=0.16.0
+websockets>=12.0
+httpx>=0.25.0
 
-# Development
-black>=21.7b0
-isort>=5.9.3
-flake8>=3.9.2
-mypy>=0.910
+# === Database and Storage ===
+sqlalchemy>=2.0.0
+alembic>=1.12.0
+redis>=5.0.0
+pymongo>=4.6.0
 
-# Documentation
-sphinx>=4.1.2
-sphinx-rtd-theme>=0.5.2
+# === Data Validation and Serialization ===
+pydantic>=2.5.0
+msgpack>=1.0.0
+orjson>=3.9.0
+
+# === Configuration and CLI ===
+typer>=0.9.0
+rich>=13.7.0
+click>=8.1.0
+pyyaml>=6.0.0
+toml>=0.10.0
+
+# === Monitoring and Logging ===
+loguru>=0.7.0
+prometheus-client>=0.19.0
+structlog>=23.2.0
+
+# === Mathematical and Statistical ===
+statsmodels>=0.14.0
+sympy>=1.12
+networkx>=3.2
+
+# === Visualization ===
+matplotlib>=3.8.0
+seaborn>=0.13.0
+plotly>=5.17.0
+bokeh>=3.3.0
+
+# === Jupyter Integration ===
+jupyter>=1.0.0
+ipywidgets>=8.1.0
+ipykernel>=6.26.0
+
+# === Development Dependencies ===
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+pytest-mock>=3.12.0
+hypothesis>=6.87.0
+black>=23.11.0
+isort>=5.12.0
+flake8>=6.1.0
+mypy>=1.7.0
+pre-commit>=3.5.0
+bandit>=1.7.0
+safety>=2.3.0
+
+# === Documentation ===
+sphinx>=7.2.0
+sphinx-rtd-theme>=1.3.0
+myst-parser>=2.0.0
+sphinx-autodoc-typehints>=1.25.0
+nbsphinx>=0.9.0
+
+# === Performance and Profiling ===
+memory-profiler>=0.61.0
+line-profiler>=4.1.0
+py-spy>=0.3.0
+scalene>=1.5.0
+
+# === Advanced Scientific Computing ===
+numba>=0.58.0
+dask>=2023.11.0
+xarray>=2023.11.0
+zarr>=2.16.0
+h5py>=3.10.0
+
+# === Quantum Computing (Optional) ===
+# qiskit>=0.45.0
+# cirq>=1.3.0
+# pennylane>=0.33.0

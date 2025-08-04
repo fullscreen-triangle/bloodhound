@@ -1,4 +1,17 @@
-# Python
+# === Bloodhound Virtual Machine - Consciousness-Aware Computing ===
+
+# === Rust Build Artifacts ===
+/target/
+**/*.rs.bk
+*.pdb
+Cargo.lock
+
+# Build directories
+build/
+dist/
+out/
+
+# === Python Artifacts ===
 __pycache__/
 *.py[cod]
 *$py.class
@@ -16,29 +29,406 @@ parts/
 sdist/
 var/
 wheels/
+share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
-# Virtual Environment
-venv/
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# Environment variables
+.env
+.venv
 env/
+venv/
 ENV/
+env.bak/
+venv.bak/
 
-# IDE
-.idea/
+# === Consciousness-Aware VM Specific ===
+
+# S-entropy navigation data
+s_entropy_cache/
+navigation_cache/
+endpoint_database/
+coordinate_transforms/
+
+# Consciousness processing
+consciousness_state/
+frame_selection_cache/
+bmd_patterns/
+semantic_understanding/
+
+# Purpose Framework domain models
+models/domain_specific/
+lora_adapters/
+distillation_cache/
+knowledge_extracts/
+
+# Combine Harvester integration data
+integration_cache/
+synthesis_patterns/
+router_models/
+expert_responses/
+
+# Neural stack architectures
+neural_architectures/
+architecture_cache/
+successful_patterns/
+exploration_history/
+
+# VPOS processor data
+virtual_processors/
+processor_cache/
+scheduling_history/
+substrate_state/
+
+# Bayesian optimization data
+optimization_history/
+performance_metrics/
+improvement_logs/
+network_evolution/
+
+# === Scientific Data ===
+
+# Genomics data
+*.vcf
+*.bam
+*.sam
+*.fastq
+*.fasta
+*.fa
+*.gff
+*.gtf
+*.bed
+
+# Proteomics data
+*.mzML
+*.mzXML
+*.mgf
+*.raw
+*.wiff
+*.d/
+
+# Metabolomics data
+*.cdf
+*.mzData
+*.mz5
+
+# Mass spectrometry
+*.RAW
+*.raw
+*.mzdb
+
+# Bioinformatics outputs
+*.blast
+*.hmm
+*.phylip
+*.nexus
+
+# === Machine Learning Models ===
+
+# Large model files
+*.bin
+*.onnx
+*.pt
+*.pth
+*.h5
+*.pkl
+*.joblib
+*.model
+
+# Model checkpoints
+checkpoints/
+saved_models/
+model_cache/
+pretrained/
+
+# Training artifacts
+runs/
+logs/
+tensorboard_logs/
+wandb/
+
+# === Configuration and Secrets ===
+
+# Local configuration overrides
+bloodhound.local.toml
+config.local.toml
+*.local.yaml
+*.local.json
+
+# Secrets and credentials
+.secrets/
+credentials/
+*.key
+*.pem
+*.crt
+*.p12
+api_keys.txt
+.env.local
+.env.production
+
+# === Database Files ===
+
+# SQLite databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Database dumps
+*.sql
+*.dump
+
+# Database logs
+*.log
+
+# === Docker and Containers ===
+
+# Docker build context
+.dockerignore
+
+# Container volumes
+docker_volumes/
+container_data/
+
+# === IDE and Editor Files ===
+
+# VSCode
 .vscode/
+*.code-workspace
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Vim
 *.swp
 *.swo
-_minted/
-# OS
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# === System Files ===
+
+# macOS
 .DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
 Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# === Temporary Files ===
+
+# Temporary directories
+tmp/
+temp/
+.tmp/
+.temp/
+
+# Log files
+*.log
 logs/
-# Project specific
-output/
-data/
-*.mp4
-*.avi
-*.mov
-public/
+*.out
+*.err
+
+# Backup files
+*.bak
+*.backup
+*.orig
+*.save
+
+# === Performance and Profiling ===
+
+# Profiling outputs
+*.prof
+*.profile
+perf.data*
+*.flamegraph
+
+# Memory dumps
+*.hprof
+*.dump
+core.*
+
+# === Documentation Build ===
+
+# Sphinx
+docs/_build/
+docs/build/
+
+# mdBook
+book/
+
+# === Research and Papers ===
+
+# LaTeX artifacts
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.idx
+*.ilg
+*.ind
+*.lof
+*.lot
+*.out
+*.toc
+*.synctex.gz
+*.nav
+*.snm
+*.vrb
+
+# Bibliography
+*.bib.bak
+
+# === Monitoring and Metrics ===
+
+# Prometheus data
+prometheus_data/
+
+# Grafana data
+grafana_data/
+
+# Elasticsearch data
+elasticsearch_data/
+
+# === Networking and Communication ===
+
+# P2P networking
+peer_data/
+network_cache/
+discovery_cache/
+
+# Federation data
+federation_state/
+pattern_sharing/
+
+# === Backup and Recovery ===
+
+# Backup files
+*.backup
+backups/
+recovery_points/
+
+# === Custom Bloodhound Patterns ===
+
+# Oscillatory computation data
+oscillatory_patterns/
+frequency_analysis/
+amplitude_cache/
+
+# Consciousness metrics
+consciousness_metrics/
+awareness_logs/
+cognitive_patterns/
+
+# Scientific analysis outputs
+analysis_results/
+experiment_outputs/
+statistical_cache/
+
+# Domain expertise cache
+medical_knowledge/
+legal_knowledge/
+financial_knowledge/
+code_knowledge/
+mathematical_knowledge/
+
+# Cross-domain integration
+synthesis_cache/
+integration_patterns/
+multi_domain_outputs/
+
+# === Node.js (for web interface) ===
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# === Certificate and Key Files ===
+*.pem
+*.key
+*.csr
+*.crt
+*.cer
+*.der
+
+# === Large Data Files ===
+# Prevent accidentally committing large files
+*.zip
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+
+# === Test Data ===
+test_data/
+sample_data/
+mock_data/
+
+# === Local Development ===
+.local/
+local_config/
+dev_cache/

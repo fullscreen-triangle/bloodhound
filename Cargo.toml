@@ -1,0 +1,181 @@
+[package]
+name = "bloodhound-vm"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.70"
+authors = ["Kundai Farai Sachikonye <kundai.sachikonye@wzw.tum.de>"]
+description = "The first consciousness-aware virtual machine for distributed scientific computing"
+documentation = "https://docs.rs/bloodhound-vm"
+repository = "https://github.com/username/bloodhound-vm"
+license = "MIT"
+keywords = ["consciousness", "virtual-machine", "s-entropy", "scientific-computing", "ai"]
+categories = ["science", "simulation", "development-tools", "algorithms"]
+readme = "README.md"
+
+[workspace]
+members = [
+    "src/core/kwasa-kwasa",
+    "src/core/kambuzuma", 
+    "src/core/buhera",
+    "src/core/musande",
+    "src/core/four-sided-triangle",
+    "src/integration/purpose-framework",
+    "src/integration/combine-harvester",
+    "src/integration/biological-quantum",
+    "src/interfaces/cli",
+    "src/interfaces/web",
+    "src/interfaces/api",
+]
+
+[dependencies]
+# Async runtime and utilities
+tokio = { version = "1.35", features = ["full"] }
+async-trait = "0.1"
+futures = "0.3"
+
+# Mathematical and scientific computing
+nalgebra = "0.32"
+ndarray = { version = "0.15", features = ["serde"] }
+num-complex = "0.4"
+statrs = "0.16"
+rayon = "1.8"
+
+# Machine learning and AI
+candle-core = "0.3"
+candle-nn = "0.3"
+candle-transformers = "0.3"
+tch = { version = "0.14", optional = true }
+ort = { version = "1.16", optional = true }
+
+# Serialization and data handling
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.8"
+bincode = "1.3"
+arrow = "51.0"
+polars = { version = "0.36", features = ["lazy", "sql", "temporal"] }
+
+# Networking and communication
+reqwest = { version = "0.11", features = ["json", "stream"] }
+tonic = "0.10"
+prost = "0.12"
+libp2p = "0.54"
+
+# Database and storage
+sqlite = { version = "0.32", optional = true }
+rocksdb = { version = "0.21", optional = true }
+redb = "1.5"
+
+# Cryptography and security
+ring = "0.17"
+rustls = "0.21"
+webpki = "0.22"
+
+# Logging and monitoring
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+metrics = "0.22"
+metrics-exporter-prometheus = "0.13"
+
+# Configuration and CLI
+clap = { version = "4.4", features = ["derive", "env"] }
+config = "0.13"
+dirs = "5.0"
+
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# Time and UUID
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1.6", features = ["v4", "serde"] }
+
+# Memory management and optimization
+dashmap = "5.5"
+parking_lot = "0.12"
+once_cell = "1.19"
+arc-swap = "1.6"
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+proptest = "1.4"
+tokio-test = "0.4"
+tempfile = "3.8"
+wiremock = "0.5"
+
+[features]
+default = ["full"]
+full = [
+    "consciousness-processing",
+    "s-entropy-navigation", 
+    "purpose-framework",
+    "combine-harvester",
+    "biological-quantum",
+    "advanced-optimization"
+]
+
+# Core capabilities
+consciousness-processing = []
+s-entropy-navigation = []
+oscillatory-computation = []
+femtosecond-processors = []
+
+# Learning and integration
+purpose-framework = []
+combine-harvester = []
+enhanced-distillation = []
+cross-domain-transfer = []
+
+# Integration capabilities
+biological-quantum = []
+external-llm-coordination = []
+huggingface-integration = []
+
+# Advanced features
+advanced-optimization = []
+bayesian-networks = []
+self-improvement = []
+metacognitive-oversight = []
+
+# Storage backends
+sqlite-backend = ["sqlite"]
+rocksdb-backend = ["rocksdb"]
+
+# AI backends
+pytorch-backend = ["tch"]
+onnx-backend = ["ort"]
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+opt-level = 3
+
+[profile.dev]
+opt-level = 0
+debug = true
+split-debuginfo = "unpacked"
+
+[[bin]]
+name = "bloodhound-vm"
+path = "src/main.rs"
+
+[[bin]]
+name = "bvm-cli"
+path = "src/interfaces/cli/main.rs"
+
+[[bench]]
+name = "s_entropy_navigation"
+harness = false
+
+[[bench]]
+name = "consciousness_processing"
+harness = false
+
+[[bench]]
+name = "domain_learning"
+harness = false
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

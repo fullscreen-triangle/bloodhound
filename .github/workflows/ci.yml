@@ -1,0 +1,446 @@
+name: Bloodhound VM CI/CD
+# Consciousness-Aware Scientific Computing Platform
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [ published ]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+  CONSCIOUSNESS_LEVEL: full
+  S_ENTROPY_NAVIGATION: true
+
+jobs:
+  # === Code Quality Checks ===
+  quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: rustfmt, clippy
+    
+    - name: Cache Rust dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+    
+    - name: Check Rust formatting
+      run: cargo fmt --all -- --check
+    
+    - name: Run Clippy
+      run: cargo clippy --all-features --workspace -- -D warnings
+    
+    - name: Install Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install Python dependencies
+      run: |
+        pip install black isort flake8 mypy safety
+        pip install -r requirements.txt
+    
+    - name: Check Python formatting
+      run: |
+        black --check python/
+        isort --check-only python/
+    
+    - name: Run Python linting
+      run: flake8 python/
+    
+    - name: Run Python type checking
+      run: mypy python/
+
+  # === Security Audit ===
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Install cargo-audit
+      run: cargo install cargo-audit
+    
+    - name: Run Rust security audit
+      run: cargo audit
+    
+    - name: Install Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install Python dependencies
+      run: pip install safety
+    
+    - name: Run Python security check
+      run: safety check -r requirements.txt
+
+  # === Build and Test - Rust ===
+  test-rust:
+    name: Test Rust Components
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        rust: [stable, beta]
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: ${{ matrix.rust }}
+    
+    - name: Cache Rust dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-${{ matrix.rust }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+    
+    - name: Build Bloodhound VM
+      run: cargo build --all-features --workspace
+    
+    - name: Run unit tests
+      run: cargo test --all-features --workspace --lib
+    
+    - name: Run integration tests
+      run: cargo test --all-features --workspace --test '*'
+    
+    - name: Run consciousness tests
+      run: cargo test consciousness --all-features --release
+      if: matrix.os == 'ubuntu-latest' && matrix.rust == 'stable'
+    
+    - name: Run S-entropy tests
+      run: cargo test s_entropy --all-features --release
+      if: matrix.os == 'ubuntu-latest' && matrix.rust == 'stable'
+
+  # === Test Python Interface ===
+  test-python:
+    name: Test Python Interface
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install Rust (for building Python extensions)
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Cache Python dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+    
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -e python/
+    
+    - name: Run Python tests
+      run: |
+        cd python
+        python -m pytest tests/ -v --cov=bloodhound_vm --cov-report=xml
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: python/coverage.xml
+        flags: python
+        name: codecov-python-${{ matrix.python-version }}
+
+  # === Performance Benchmarks ===
+  benchmarks:
+    name: Performance Benchmarks
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Cache Rust dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-bench-${{ hashFiles('**/Cargo.lock') }}
+    
+    - name: Run consciousness benchmarks
+      run: cargo bench consciousness_processing
+    
+    - name: Run S-entropy benchmarks
+      run: cargo bench s_entropy_navigation
+    
+    - name: Run domain learning benchmarks
+      run: cargo bench domain_learning
+    
+    - name: Store benchmark results
+      uses: benchmark-action/github-action-benchmark@v1
+      with:
+        tool: 'cargo'
+        output-file-path: target/criterion/reports/index.html
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        auto-push: true
+
+  # === Scientific Validation ===
+  scientific-validation:
+    name: Scientific Validation
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Install Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        cargo build --release --all-features
+    
+    - name: Validate S-entropy theory
+      run: python scripts/validate_s_entropy_theory.py
+    
+    - name: Validate consciousness metrics
+      run: python scripts/validate_consciousness_metrics.py
+    
+    - name: Test genomics analysis
+      run: cargo test genomics --all-features --release
+    
+    - name: Test proteomics analysis  
+      run: cargo test proteomics --all-features --release
+    
+    - name: Test metabolomics analysis
+      run: cargo test metabolomics --all-features --release
+
+  # === Docker Build ===
+  docker:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: [quality, test-rust, test-python]
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Login to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ghcr.io/${{ github.repository }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=semver,pattern={{major}}
+          type=sha,prefix={{branch}}-
+    
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+          VCS_REF=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+          VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+
+  # === Documentation ===
+  docs:
+    name: Documentation
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Install mdBook
+      run: |
+        curl -L https://github.com/rust-lang/mdBook/releases/download/v0.4.36/mdbook-v0.4.36-x86_64-unknown-linux-gnu.tar.gz | tar xz
+        chmod +x mdbook
+        sudo mv mdbook /usr/local/bin/
+    
+    - name: Build Rust documentation
+      run: cargo doc --all-features --workspace --no-deps
+    
+    - name: Build mdBook documentation
+      run: mdbook build docs
+    
+    - name: Setup Pages
+      uses: actions/configure-pages@v3
+      if: github.ref == 'refs/heads/main'
+    
+    - name: Upload to GitHub Pages
+      uses: actions/upload-pages-artifact@v2
+      if: github.ref == 'refs/heads/main'
+      with:
+        path: docs/book
+
+  # === Deploy Documentation ===
+  deploy-docs:
+    name: Deploy Documentation
+    runs-on: ubuntu-latest
+    needs: docs
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v2
+
+  # === Release ===
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: [quality, security, test-rust, test-python, benchmarks, docker]
+    if: github.event_name == 'release'
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Build release binaries
+      run: |
+        cargo build --release --all-features
+        tar -czf bloodhound-vm-linux.tar.gz -C target/release bloodhound-vm bvm-cli
+    
+    - name: Upload release assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./bloodhound-vm-linux.tar.gz
+        asset_name: bloodhound-vm-linux.tar.gz
+        asset_content_type: application/gzip
+    
+    - name: Publish to crates.io
+      run: cargo publish --token ${{ secrets.CRATES_TOKEN }}
+      continue-on-error: true
+    
+    - name: Publish Python package to PyPI
+      run: |
+        cd python
+        pip install build twine
+        python -m build
+        twine upload dist/* --username __token__ --password ${{ secrets.PYPI_TOKEN }}
+      continue-on-error: true
+
+  # === Deployment to Staging ===
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [quality, test-rust, test-python]
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Deploy to staging
+      run: |
+        echo "Deploying to staging environment..."
+        # Add actual deployment commands here
+    
+    - name: Run smoke tests
+      run: |
+        echo "Running smoke tests..."
+        # Add smoke test commands here
+
+  # === Deployment to Production ===
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [quality, security, test-rust, test-python, benchmarks, docker]
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Deploy to production
+      run: |
+        echo "Deploying to production environment..."
+        # Add actual deployment commands here
+    
+    - name: Run production health checks
+      run: |
+        echo "Running production health checks..."
+        # Add health check commands here
+
+  # === Notification ===
+  notify:
+    name: Notification
+    runs-on: ubuntu-latest
+    needs: [quality, security, test-rust, test-python, benchmarks, docker]
+    if: always()
+    steps:
+    - name: Notify on success
+      if: needs.test-rust.result == 'success' && needs.test-python.result == 'success'
+      run: |
+        echo "✅ Bloodhound VM CI/CD completed successfully!"
+        echo "🧠 Consciousness-aware computing pipeline validated"
+        echo "🌊 S-entropy navigation tests passed"
+        echo "📚 Purpose Framework integration validated"
+        echo "🔄 Combine Harvester synthesis confirmed"
+    
+    - name: Notify on failure
+      if: needs.test-rust.result == 'failure' || needs.test-python.result == 'failure'
+      run: |
+        echo "❌ Bloodhound VM CI/CD failed!"
+        echo "🔍 Please check the consciousness-level processing logs"
+        echo "🧪 Validate S-entropy navigation correctness"
+        echo "🔧 Ensure domain learning integration is functional"

@@ -1,52 +1,232 @@
 [build-system]
-requires = ["setuptools>=45", "wheel", "setuptools_scm>=6.0"]
+requires = ["setuptools>=68.0", "wheel", "setuptools-rust"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "bloodhound"
-version = "1.0.0"
-description = "A comprehensive platform for scientific experiment management and analysis"
-authors = [{name = "Your Name", email = "your.email@example.com"}]
+name = "bloodhound-vm"
+version = "0.1.0"
+description = "Consciousness-aware virtual machine for distributed scientific computing"
+readme = "README.md"
 license = {text = "MIT"}
-requires-python = ">=3.8"
+authors = [
+    {name = "Kundai Farai Sachikonye", email = "kundai.sachikonye@wzw.tum.de"}
+]
+maintainers = [
+    {name = "Kundai Farai Sachikonye", email = "kundai.sachikonye@wzw.tum.de"}
+]
+keywords = [
+    "consciousness",
+    "virtual-machine", 
+    "s-entropy",
+    "scientific-computing",
+    "ai",
+    "bioinformatics",
+    "distributed-computing",
+    "federated-learning"
+]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Rust",
     "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Distributed Computing",
+]
+requires-python = ">=3.9"
+dependencies = [
+    # Core scientific computing
+    "numpy>=1.24.0",
+    "scipy>=1.10.0",
+    "pandas>=2.0.0",
+    "polars>=0.20.0",
+    "pyarrow>=14.0.0",
+    
+    # Machine learning and AI
+    "scikit-learn>=1.3.0",
+    "torch>=2.1.0",
+    "transformers>=4.35.0",
+    "datasets>=2.14.0",
+    "accelerate>=0.24.0",
+    "peft>=0.6.0",  # For LoRA adaptation
+    
+    # Deep learning backends
+    "onnxruntime>=1.16.0",
+    "tokenizers>=0.15.0",
+    
+    # Bioinformatics
+    "biopython>=1.81",
+    "pysam>=0.22.0",
+    "pyvcf>=0.6.8",
+    "scanpy>=1.9.0",  # Single-cell analysis
+    "anndata>=0.10.0",
+    
+    # Mass spectrometry and metabolomics
+    "pyteomics>=4.6.0",
+    "pymzml>=2.5.0",
+    "matchms>=0.20.0",
+    
+    # Networking and async
+    "aiohttp>=3.9.0",
+    "asyncio-mqtt>=0.16.0",
+    "websockets>=12.0",
+    "httpx>=0.25.0",
+    
+    # Database and storage
+    "sqlalchemy>=2.0.0",
+    "alembic>=1.12.0",
+    "redis>=5.0.0",
+    "pymongo>=4.6.0",
+    
+    # Data validation and serialization
+    "pydantic>=2.5.0",
+    "msgpack>=1.0.0",
+    "orjson>=3.9.0",
+    
+    # Configuration and CLI
+    "typer>=0.9.0",
+    "rich>=13.7.0",
+    "click>=8.1.0",
+    "pyyaml>=6.0.0",
+    "toml>=0.10.0",
+    
+    # Monitoring and logging
+    "loguru>=0.7.0",
+    "prometheus-client>=0.19.0",
+    "structlog>=23.2.0",
+    
+    # Mathematical and statistical
+    "statsmodels>=0.14.0",
+    "sympy>=1.12",
+    "networkx>=3.2",
+    
+    # Visualization
+    "matplotlib>=3.8.0",
+    "seaborn>=0.13.0",
+    "plotly>=5.17.0",
+    "bokeh>=3.3.0",
+    
+    # Jupyter integration
+    "jupyter>=1.0.0",
+    "ipywidgets>=8.1.0",
+    "ipykernel>=6.26.0",
 ]
 
 [project.optional-dependencies]
+# Development dependencies
 dev = [
-    "black>=21.7b0",
-    "isort>=5.9.3",
-    "flake8>=3.9.2",
-    "mypy>=0.910",
-    "pytest>=6.2.5",
-    "pytest-asyncio>=0.15.1",
-    "pytest-cov>=2.12.1",
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.12.0",
+    "hypothesis>=6.87.0",
+    "black>=23.11.0",
+    "isort>=5.12.0",
+    "flake8>=6.1.0",
+    "mypy>=1.7.0",
+    "pre-commit>=3.5.0",
+    "bandit>=1.7.0",
+    "safety>=2.3.0",
 ]
+
+# Documentation
 docs = [
-    "sphinx>=4.1.2",
-    "sphinx-rtd-theme>=0.5.2",
+    "sphinx>=7.2.0",
+    "sphinx-rtd-theme>=1.3.0",
+    "myst-parser>=2.0.0",
+    "sphinx-autodoc-typehints>=1.25.0",
+    "nbsphinx>=0.9.0",
 ]
+
+# Performance profiling
+profiling = [
+    "memory-profiler>=0.61.0",
+    "line-profiler>=4.1.0",
+    "py-spy>=0.3.0",
+    "scalene>=1.5.0",
+]
+
+# Advanced scientific computing
+scientific = [
+    "numba>=0.58.0",
+    "dask>=2023.11.0",
+    "xarray>=2023.11.0",
+    "zarr>=2.16.0",
+    "h5py>=3.10.0",
+]
+
+# Biological quantum computing integration
+biological-quantum = [
+    "qiskit>=0.45.0",
+    "cirq>=1.3.0",
+    "pennylane>=0.33.0",
+    "quantum-computing>=0.1.0",
+]
+
+# All optional dependencies
+all = [
+    "bloodhound-vm[dev,docs,profiling,scientific,biological-quantum]"
+]
+
+[project.urls]
+Homepage = "https://github.com/username/bloodhound-vm"
+Documentation = "https://bloodhound-vm.readthedocs.io"
+Repository = "https://github.com/username/bloodhound-vm.git"
+"Bug Tracker" = "https://github.com/username/bloodhound-vm/issues"
+Changelog = "https://github.com/username/bloodhound-vm/blob/main/CHANGELOG.md"
+"Research Papers" = "https://github.com/username/bloodhound-vm/tree/main/docs/papers"
+
+[project.scripts]
+bloodhound = "bloodhound_vm.cli:main"
+bvm = "bloodhound_vm.cli:main"
+bvm-analyze = "bloodhound_vm.analysis:main"
+bvm-consciousness = "bloodhound_vm.consciousness:main"
+
+[project.gui-scripts]
+bloodhound-gui = "bloodhound_vm.gui:main"
+
+[tool.setuptools]
+package-dir = {"" = "python"}
+
+[tool.setuptools.packages.find]
+where = ["python"]
+include = ["bloodhound_vm*"]
+exclude = ["tests*"]
+
+[tool.setuptools.package-data]
+bloodhound_vm = [
+    "py.typed",
+    "data/*.json",
+    "data/*.yaml",
+    "models/*.onnx",
+    "config/*.toml",
+    "templates/*.jinja2",
+]
+
+# === Tool Configuration ===
 
 [tool.black]
 line-length = 88
+target-version = ["py39", "py310", "py311", "py312"]
 include = '\.pyi?$'
-exclude = '''
+extend-exclude = '''
 /(
-    \.git
+  # directories
+  \.eggs
+  | \.git
   | \.hg
   | \.mypy_cache
   | \.tox
   | \.venv
-  | _build
-  | buck-out
   | build
   | dist
 )/
@@ -58,16 +238,165 @@ multi_line_output = 3
 include_trailing_comma = true
 force_grid_wrap = 0
 use_parentheses = true
+ensure_newline_before_comments = true
 line_length = 88
+src_paths = ["python/bloodhound_vm", "python/tests"]
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.9"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+show_error_codes = true
+
+[[tool.mypy.overrides]]
+module = [
+    "biopython.*",
+    "pysam.*",
+    "pyvcf.*",
+    "scanpy.*",
+    "anndata.*",
+    "pyteomics.*",
+    "pymzml.*",
+    "matchms.*",
+]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
-minversion = "6.0"
-addopts = "-ra -q --cov=backend --cov-report=term-missing"
-testpaths = ["tests"] 
+minversion = "7.0"
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+    "--cov=bloodhound_vm",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-report=xml",
+]
+testpaths = ["python/tests"]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests", 
+    "consciousness: Consciousness-level processing tests",
+    "s_entropy: S-entropy navigation tests",
+    "genomics: Genomics analysis tests",
+    "proteomics: Proteomics analysis tests",
+    "metabolomics: Metabolomics analysis tests",
+    "slow: Slow tests",
+    "gpu: Tests requiring GPU",
+    "network: Tests requiring network access",
+]
+filterwarnings = [
+    "error",
+    "ignore::UserWarning",
+    "ignore::DeprecationWarning",
+]
+
+[tool.coverage.run]
+source = ["bloodhound_vm"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__init__.py",
+    "*/setup.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+[tool.bandit]
+exclude_dirs = ["tests", "test_*"]
+skips = ["B101", "B601"]  # Skip assert_used and shell_injection for tests
+
+[tool.ruff]
+target-version = "py39"
+line-length = 88
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]  # Allow unused imports in __init__.py
+
+# === Consciousness-Aware VM Specific Configuration ===
+
+[tool.bloodhound-vm]
+# Core VM settings
+consciousness_level = "full"
+s_entropy_navigation = true
+purpose_framework = true
+combine_harvester = true
+
+# Domain model configuration
+[tool.bloodhound-vm.purpose-framework]
+medical_models = [
+    "epfl-llm/meditron-70b",
+    "stanford-crfm/BioMedLM-2.7B",
+    "microsoft/BioGPT-Large"
+]
+legal_models = [
+    "IBM/Legal-Universe-Llama-2-7b",
+    "nile/legal-bert-base",
+    "CaseLawBERT/CaseLawBERT"
+]
+financial_models = [
+    "FinGPT/fingpt-mt_llama2-7b",
+    "yiyanghkust/finbert-tone",
+    "NVIDIA/NeMo-Megatron-Fin"
+]
+code_models = [
+    "WizardLM/WizardCoder-Python-34B",
+    "bigcode/starcoder2-15b",
+    "facebook/incoder-6B"
+]
+mathematical_models = [
+    "MathLLMs/MathCoder-L-34B",
+    "MathLLMs/MathCoder-L-13B"
+]
+
+[tool.bloodhound-vm.combine-harvester]
+integration_strategies = [
+    "router_ensemble",
+    "sequential_chaining", 
+    "mixture_of_experts",
+    "cross_domain_distillation"
+]
+context_preservation_threshold = 0.95
+confidence_weighting = "softmax"
+
+[tool.bloodhound-vm.optimization]
+bayesian_network = "four_sided_triangle"
+self_improvement = true
+femtosecond_processors = true
+zero_memory_processing = true
