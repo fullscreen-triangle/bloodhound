@@ -1,0 +1,36 @@
+[package]
+name = "jungfernstieg"
+version = "0.1.0"
+edition = "2021"
+authors = ["Kundai Farai Sachikonye <kundai.sachikonye@wzw.tum.de>"]
+description = "Jungfernstieg: Biological Neural Network Viability Through Virtual Blood Circulatory Systems"
+license = "MIT"
+keywords = ["biological-neural-viability", "virtual-blood", "oscillatory-vm", "s-entropy", "consciousness"]
+categories = ["science", "simulation", "biology", "neural-networks"]
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+anyhow = "1.0"
+thiserror = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+uuid = { version = "1.0", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+tracing = "0.1"
+tracing-subscriber = "0.3"
+async-trait = "0.1"
+futures = "0.3"
+dashmap = "5.0"
+parking_lot = "0.12"
+rand = "0.8"
+nalgebra = "0.32"
+ndarray = "0.15"
+
+# Core Bloodhound VM components
+kwasa_kwasa = { path = "../kwasa_kwasa" }
+buhera = { path = "../buhera" }
+musande = { path = "../musande" }
+four_sided_triangle = { path = "../four_sided_triangle" }
+
+[dev-dependencies]
+tokio-test = "0.4"
