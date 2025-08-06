@@ -14,6 +14,7 @@ readme = "README.md"
 
 [workspace]
 members = [
+    "src/bloodhound_vm_core", # Main VM crate
     "src/core/kwasa-kwasa",
     "src/core/kambuzuma", 
     "src/core/buhera",

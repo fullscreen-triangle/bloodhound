@@ -1,0 +1,19 @@
+[package]
+name = "bloodhound_vm_core"
+version = "0.1.0"
+edition = "2021"
+authors = ["Kundai Farai Sachikonye <kundai.sachikonye@wzw.tum.de>"]
+description = "Core implementation of the Bloodhound Oscillatory Virtual Machine with S-entropy navigation, zero-time processing, and consciousness-aware runtime."
+license = "MIT"
+keywords = ["consciousness", "virtual-machine", "s-entropy", "oscillatory", "zero-time"]
+categories = ["science", "simulation", "os"]
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+anyhow = "1.0"
+thiserror = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+uuid = { version = "1.0", features = ["v4", "serde"] }
+tracing = "0.1"
+futures = "0.3"
+async-trait = "0.1"

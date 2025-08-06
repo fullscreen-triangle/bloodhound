@@ -47,6 +47,7 @@ pub mod interfaces;
 pub mod monitoring;
 pub mod noise;
 pub mod optimization;
+pub mod oscillatory_lagrangian;
 pub mod substrate;
 
 use anyhow::Result;
@@ -64,6 +65,7 @@ pub use interfaces::*;
 pub use monitoring::*;
 pub use noise::*;
 pub use optimization::*;
+pub use oscillatory_lagrangian::*;
 pub use substrate::*;
 
 /// The main Jungfernstieg system that coordinates biological-virtual neural symbiosis
@@ -99,6 +101,9 @@ pub struct JungfernstigSystem {
     
     /// Reality observation engine for processing communication module data
     pub reality_observer: Arc<RwLock<RealityObservationEngine>>,
+    
+    /// Unified Oscillatory Lagrangian coordination engine
+    pub oscillatory_lagrangian: Arc<RwLock<UnifiedOscillatoryLagrangian>>,
     
     /// System performance metrics
     pub metrics: Arc<RwLock<JungfernstigMetrics>>,
@@ -272,6 +277,11 @@ impl JungfernstigSystem {
             RealityObservationEngine::new().await?
         ));
         
+        // Initialize Unified Oscillatory Lagrangian coordination engine
+        let oscillatory_lagrangian = Arc::new(RwLock::new(
+            UnifiedOscillatoryLagrangian::new().await?
+        ));
+        
         let system = Self {
             id: system_id,
             config,
@@ -283,6 +293,7 @@ impl JungfernstigSystem {
             memory_learning,
             filtration_system,
             reality_observer,
+            oscillatory_lagrangian,
             metrics: Arc::new(RwLock::new(JungfernstigMetrics::default())),
         };
         
