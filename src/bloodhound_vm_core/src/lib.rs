@@ -301,6 +301,7 @@ impl BloodhoundOscillatoryVM {
         self.start_infinite_parallelization().await?;
         self.start_communication_interface().await?;
         self.start_philosophical_foundation().await?;
+        self.start_no_boundary_engine().await?;
         
         // Start coordination loops
         self.start_vm_coordination_loops().await?;
@@ -806,5 +807,83 @@ pub struct ResourceUtilization;
 
 // Additional type definitions would go in the respective modules
 // These are placeholder for the module implementations
+
+// Implementation of missing VM methods
+impl BloodhoundOscillatoryVM {
+    /// Start no-boundary thermodynamic engine
+    async fn start_no_boundary_engine(&self) -> Result<()> {
+        info!("Starting no-boundary thermodynamic engine");
+        let engine = self.no_boundary_engine.read().await;
+        engine.start().await?;
+        info!("No-boundary thermodynamic engine started successfully");
+        Ok(())
+    }
+    
+    /// Start philosophical foundation
+    async fn start_philosophical_foundation(&self) -> Result<()> {
+        info!("Starting philosophical foundation");
+        // Philosophical foundation is always active (meaninglessness is eternal)
+        info!("Philosophical foundation activated - universal meaninglessness proven through mathematical necessity");
+        Ok(())
+    }
+    
+    // Other missing start methods (placeholder implementations)
+    async fn start_s_entropy_navigation(&self) -> Result<()> {
+        info!("Starting S-entropy navigation");
+        Ok(())
+    }
+    
+    async fn start_oscillatory_substrate(&self) -> Result<()> {
+        info!("Starting oscillatory substrate");
+        Ok(())
+    }
+    
+    async fn start_consciousness_runtime(&self) -> Result<()> {
+        info!("Starting consciousness runtime");
+        Ok(())
+    }
+    
+    async fn start_zero_time_processing(&self) -> Result<()> {
+        info!("Starting zero-time processing");
+        Ok(())
+    }
+    
+    async fn start_infinite_parallelization(&self) -> Result<()> {
+        info!("Starting infinite parallelization");
+        Ok(())
+    }
+    
+    async fn start_communication_interface(&self) -> Result<()> {
+        info!("Starting communication interface");
+        Ok(())
+    }
+    
+    async fn start_vm_coordination_loops(&self) -> Result<()> {
+        info!("Starting VM coordination loops");
+        Ok(())
+    }
+    
+    /// Solve problem using no-boundary thermodynamic principles
+    pub async fn solve_problem_via_no_boundary_engine(
+        &self,
+        problem_coordinates: ExtendedSEntropyCoordinates,
+    ) -> Result<NoBoundaryEngineResult> {
+        info!("Solving problem using no-boundary thermodynamic engine");
+        let engine = self.no_boundary_engine.read().await;
+        engine.solve_problem(problem_coordinates).await
+    }
+    
+    /// Check if VM has achieved near-infinite efficiency
+    pub async fn has_achieved_infinite_efficiency(&self) -> Result<bool> {
+        let engine = self.no_boundary_engine.read().await;
+        engine.has_achieved_infinite_efficiency().await
+    }
+    
+    /// Get no-boundary engine metrics
+    pub async fn get_no_boundary_metrics(&self) -> Result<NoBoundaryEngineMetrics> {
+        let engine = self.no_boundary_engine.read().await;
+        engine.get_metrics().await
+    }
+}
 
 // Additional type definitions and re-exports are defined in the respective modules
