@@ -1,0 +1,169 @@
+{
+  "study_info": {
+    "study_id": "BLOODHOUND_METAB_001",
+    "title": "Distributed Metabolomics Validation Dataset",
+    "description": "Small-scale metabolomics dataset for validating distributed analysis with oscillatory theory",
+    "date_created": "2024-01-15",
+    "analytical_platform": "LC-MS/MS",
+    "ionization_mode": "positive",
+    "mass_range": "50-1200 m/z",
+    "resolution": "70000 FWHM"
+  },
+  "samples": {
+    "METAB_001": {
+      "sample_id": "METAB_001",
+      "individual_id": "IND_001",
+      "sample_type": "plasma",
+      "collection_time": "fasting",
+      "phenotype": "control",
+      "processing_node": "node_4",
+      "spectrum_data": {
+        "mz_array": [89.047, 104.107, 118.086, 132.102, 146.118, 180.063, 204.123, 274.274, 369.352, 524.371],
+        "intensity_array": [8420, 12350, 6780, 15670, 9230, 45670, 8950, 3420, 2180, 1560],
+        "retention_times": [2.3, 3.7, 4.2, 5.8, 6.1, 8.4, 12.7, 18.3, 22.1, 25.9],
+        "peak_quality": [0.92, 0.88, 0.94, 0.91, 0.89, 0.96, 0.87, 0.83, 0.79, 0.74]
+      },
+      "identified_metabolites": ["alanine", "serine", "valine", "proline", "phenylalanine", "glucose", "lactate", "palmitic_acid", "cholesterol", "phosphatidylcholine"]
+    },
+    "METAB_002": {
+      "sample_id": "METAB_002", 
+      "individual_id": "IND_002",
+      "sample_type": "plasma",
+      "collection_time": "fasting",
+      "phenotype": "diabetes_t2",
+      "processing_node": "node_4",
+      "spectrum_data": {
+        "mz_array": [89.047, 104.107, 118.086, 132.102, 146.118, 180.063, 204.123, 274.274, 369.352, 524.371],
+        "intensity_array": [6780, 8920, 4560, 18920, 12450, 52340, 11230, 5670, 4320, 2890],
+        "retention_times": [2.3, 3.7, 4.2, 5.8, 6.1, 8.4, 12.7, 18.3, 22.1, 25.9],
+        "peak_quality": [0.89, 0.85, 0.91, 0.93, 0.92, 0.97, 0.90, 0.86, 0.82, 0.78]
+      },
+      "identified_metabolites": ["alanine", "serine", "valine", "proline", "phenylalanine", "glucose", "lactate", "palmitic_acid", "cholesterol", "phosphatidylcholine"]
+    },
+    "METAB_003": {
+      "sample_id": "METAB_003",
+      "individual_id": "IND_003",
+      "sample_type": "plasma", 
+      "collection_time": "fasting",
+      "phenotype": "control",
+      "processing_node": "node_5",
+      "spectrum_data": {
+        "mz_array": [89.047, 104.107, 118.086, 132.102, 146.118, 180.063, 204.123, 274.274, 369.352, 524.371],
+        "intensity_array": [9120, 11780, 7230, 14560, 8670, 43890, 8120, 2980, 1890, 1320],
+        "retention_times": [2.3, 3.7, 4.2, 5.8, 6.1, 8.4, 12.7, 18.3, 22.1, 25.9],
+        "peak_quality": [0.94, 0.90, 0.96, 0.89, 0.87, 0.95, 0.85, 0.81, 0.77, 0.72]
+      },
+      "identified_metabolites": ["alanine", "serine", "valine", "proline", "phenylalanine", "glucose", "lactate", "palmitic_acid", "cholesterol", "phosphatidylcholine"]
+    },
+    "METAB_004": {
+      "sample_id": "METAB_004",
+      "individual_id": "IND_004", 
+      "sample_type": "plasma",
+      "collection_time": "fasting",
+      "phenotype": "cardiovascular",
+      "processing_node": "node_5",
+      "spectrum_data": {
+        "mz_array": [89.047, 104.107, 118.086, 132.102, 146.118, 180.063, 204.123, 274.274, 369.352, 524.371],
+        "intensity_array": [7890, 9450, 5890, 16780, 10890, 38920, 12450, 6780, 5230, 3890],
+        "retention_times": [2.3, 3.7, 4.2, 5.8, 6.1, 8.4, 12.7, 18.3, 22.1, 25.9],
+        "peak_quality": [0.91, 0.87, 0.93, 0.92, 0.90, 0.94, 0.88, 0.84, 0.80, 0.76]
+      },
+      "identified_metabolites": ["alanine", "serine", "valine", "proline", "phenylalanine", "glucose", "lactate", "palmitic_acid", "cholesterol", "phosphatidylcholine"]
+    },
+    "METAB_005": {
+      "sample_id": "METAB_005",
+      "individual_id": "IND_005",
+      "sample_type": "plasma",
+      "collection_time": "fasting", 
+      "phenotype": "control",
+      "processing_node": "node_6",
+      "spectrum_data": {
+        "mz_array": [89.047, 104.107, 118.086, 132.102, 146.118, 180.063, 204.123, 274.274, 369.352, 524.371],
+        "intensity_array": [8950, 12890, 7560, 13450, 8920, 46780, 7890, 3120, 2010, 1450],
+        "retention_times": [2.3, 3.7, 4.2, 5.8, 6.1, 8.4, 12.7, 18.3, 22.1, 25.9],
+        "peak_quality": [0.93, 0.89, 0.95, 0.90, 0.88, 0.96, 0.86, 0.82, 0.78, 0.73]
+      },
+      "identified_metabolites": ["alanine", "serine", "valine", "proline", "phenylalanine", "glucose", "lactate", "palmitic_acid", "cholesterol", "phosphatidylcholine"]
+    }
+  },
+  "metabolite_database": {
+    "alanine": {
+      "formula": "C3H7NO2",
+      "exact_mass": 89.047,
+      "pathway": "amino_acid_metabolism",
+      "biological_role": "energy_metabolism",
+      "oscillatory_signature": {
+        "vibrational_frequencies": [1623, 1572, 1345],
+        "electronic_frequencies": [2.8e14, 3.2e14],
+        "rotational_frequencies": [12.3, 18.7, 24.1]
+      }
+    },
+    "serine": {
+      "formula": "C3H7NO3", 
+      "exact_mass": 105.043,
+      "pathway": "amino_acid_metabolism",
+      "biological_role": "one_carbon_metabolism",
+      "oscillatory_signature": {
+        "vibrational_frequencies": [1634, 1583, 1356],
+        "electronic_frequencies": [2.9e14, 3.3e14],
+        "rotational_frequencies": [11.8, 17.9, 23.4]
+      }
+    },
+    "glucose": {
+      "formula": "C6H12O6",
+      "exact_mass": 180.063,
+      "pathway": "glycolysis",
+      "biological_role": "energy_source",
+      "oscillatory_signature": {
+        "vibrational_frequencies": [1456, 1389, 1278, 1156],
+        "electronic_frequencies": [2.6e14, 2.9e14, 3.1e14],
+        "rotational_frequencies": [8.7, 12.4, 16.8, 21.3]
+      }
+    },
+    "lactate": {
+      "formula": "C3H6O3",
+      "exact_mass": 90.032,
+      "pathway": "glycolysis",
+      "biological_role": "anaerobic_metabolism",
+      "oscillatory_signature": {
+        "vibrational_frequencies": [1578, 1423, 1289],
+        "electronic_frequencies": [2.7e14, 3.0e14],
+        "rotational_frequencies": [13.2, 19.8, 25.7]
+      }
+    },
+    "cholesterol": {
+      "formula": "C27H46O",
+      "exact_mass": 386.355,
+      "pathway": "steroid_biosynthesis", 
+      "biological_role": "membrane_structure",
+      "oscillatory_signature": {
+        "vibrational_frequencies": [1678, 1589, 1456, 1378, 1298, 1234, 1189],
+        "electronic_frequencies": [2.4e14, 2.7e14, 2.9e14, 3.2e14],
+        "rotational_frequencies": [4.2, 6.8, 9.3, 12.7, 15.9, 18.4, 21.8]
+      }
+    }
+  },
+  "processing_nodes": {
+    "node_4": {
+      "location": "datacenter_east",
+      "specs": "64-core, 512GB RAM, Lavoisier_API",
+      "samples_assigned": ["METAB_001", "METAB_002"],
+      "processing_capacity": "high",
+      "specialized_modules": ["oscillatory_analysis", "environmental_complexity"]
+    },
+    "node_5": {
+      "location": "datacenter_central",
+      "specs": "32-core, 256GB RAM, Hardware_Validation",
+      "samples_assigned": ["METAB_003", "METAB_004"], 
+      "processing_capacity": "medium",
+      "specialized_modules": ["hardware_validation", "systematic_coverage"]
+    },
+    "node_6": {
+      "location": "datacenter_west",
+      "specs": "16-core, 128GB RAM, Temporal_Analysis",
+      "samples_assigned": ["METAB_005"],
+      "processing_capacity": "standard", 
+      "specialized_modules": ["temporal_analysis", "pathway_convergence"]
+    }
+  }
+}

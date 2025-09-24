@@ -1,0 +1,163 @@
+{
+  "study_info": {
+    "study_id": "BLOODHOUND_DEMO_001",
+    "title": "Distributed Genomics Validation Dataset",
+    "description": "Small-scale genomics dataset for validating distributed analysis with Kwasa-Kwasa integration",
+    "date_created": "2024-01-15",
+    "reference_genome": "GRCh38",
+    "sequencing_platform": "Illumina NovaSeq 6000",
+    "coverage_target": "30x"
+  },
+  "samples": {
+    "SAMPLE_001": {
+      "sample_id": "SAMPLE_001",
+      "individual_id": "IND_001",
+      "population": "EUR",
+      "sex": "F",
+      "age": 45,
+      "phenotype": "control",
+      "clinical_notes": "Healthy control, no family history of cardiovascular disease",
+      "processing_node": "node_1",
+      "quality_metrics": {
+        "coverage_mean": 32.4,
+        "coverage_std": 8.2,
+        "mapping_quality": 58.7,
+        "contamination_rate": 0.002
+      }
+    },
+    "SAMPLE_002": {
+      "sample_id": "SAMPLE_002", 
+      "individual_id": "IND_002",
+      "population": "EUR",
+      "sex": "M",
+      "age": 52,
+      "phenotype": "case",
+      "clinical_notes": "Diagnosed with Type 2 diabetes, APOE e4 carrier",
+      "processing_node": "node_1",
+      "quality_metrics": {
+        "coverage_mean": 29.8,
+        "coverage_std": 7.9,
+        "mapping_quality": 59.1,
+        "contamination_rate": 0.001
+      }
+    },
+    "SAMPLE_003": {
+      "sample_id": "SAMPLE_003",
+      "individual_id": "IND_003", 
+      "population": "AFR",
+      "sex": "F",
+      "age": 38,
+      "phenotype": "control",
+      "clinical_notes": "Healthy control, athlete",
+      "processing_node": "node_2",
+      "quality_metrics": {
+        "coverage_mean": 31.2,
+        "coverage_std": 6.8,
+        "mapping_quality": 57.9,
+        "contamination_rate": 0.003
+      }
+    },
+    "SAMPLE_004": {
+      "sample_id": "SAMPLE_004",
+      "individual_id": "IND_004",
+      "population": "EAS", 
+      "sex": "M",
+      "age": 61,
+      "phenotype": "case",
+      "clinical_notes": "Cardiovascular disease, warfarin sensitivity",
+      "processing_node": "node_2",
+      "quality_metrics": {
+        "coverage_mean": 33.7,
+        "coverage_std": 9.1,
+        "mapping_quality": 58.3,
+        "contamination_rate": 0.002
+      }
+    },
+    "SAMPLE_005": {
+      "sample_id": "SAMPLE_005",
+      "individual_id": "IND_005",
+      "population": "AMR",
+      "sex": "F", 
+      "age": 29,
+      "phenotype": "control",
+      "clinical_notes": "Healthy control, vegetarian diet",
+      "processing_node": "node_3",
+      "quality_metrics": {
+        "coverage_mean": 28.9,
+        "coverage_std": 7.3,
+        "mapping_quality": 58.8,
+        "contamination_rate": 0.001
+      }
+    }
+  },
+  "variant_annotations": {
+    "rs429358": {
+      "gene": "APOE",
+      "consequence": "missense_variant",
+      "clinical_significance": "pathogenic",
+      "disease_association": "Alzheimer disease, cardiovascular disease",
+      "allele_frequency_gnomad": 0.136,
+      "pharmacogenomic_relevance": "statin response"
+    },
+    "rs7412": {
+      "gene": "APOE", 
+      "consequence": "missense_variant",
+      "clinical_significance": "protective",
+      "disease_association": "cardiovascular disease protection",
+      "allele_frequency_gnomad": 0.078,
+      "pharmacogenomic_relevance": "statin response"
+    },
+    "rs6715758": {
+      "gene": "APOB",
+      "consequence": "intron_variant",
+      "clinical_significance": "likely_benign",
+      "disease_association": "cholesterol levels",
+      "allele_frequency_gnomad": 0.342,
+      "pharmacogenomic_relevance": "none"
+    },
+    "rs1799853": {
+      "gene": "CYP2C9",
+      "consequence": "missense_variant", 
+      "clinical_significance": "pathogenic",
+      "disease_association": "warfarin sensitivity",
+      "allele_frequency_gnomad": 0.124,
+      "pharmacogenomic_relevance": "warfarin dosing"
+    },
+    "rs1057910": {
+      "gene": "CYP2C9",
+      "consequence": "missense_variant",
+      "clinical_significance": "pathogenic", 
+      "disease_association": "warfarin sensitivity",
+      "allele_frequency_gnomad": 0.067,
+      "pharmacogenomic_relevance": "warfarin dosing"
+    },
+    "rs11571833": {
+      "gene": "BRCA2",
+      "consequence": "intron_variant",
+      "clinical_significance": "uncertain_significance",
+      "disease_association": "breast cancer risk",
+      "allele_frequency_gnomad": 0.189,
+      "pharmacogenomic_relevance": "PARP inhibitor response"
+    }
+  },
+  "processing_nodes": {
+    "node_1": {
+      "location": "datacenter_east",
+      "specs": "64-core, 512GB RAM, A100 GPU",
+      "samples_assigned": ["SAMPLE_001", "SAMPLE_002"],
+      "processing_capacity": "high"
+    },
+    "node_2": {
+      "location": "datacenter_central", 
+      "specs": "32-core, 256GB RAM, V100 GPU",
+      "samples_assigned": ["SAMPLE_003", "SAMPLE_004"],
+      "processing_capacity": "medium"
+    },
+    "node_3": {
+      "location": "datacenter_west",
+      "specs": "16-core, 128GB RAM, RTX3090 GPU", 
+      "samples_assigned": ["SAMPLE_005"],
+      "processing_capacity": "standard"
+    }
+  }
+}
