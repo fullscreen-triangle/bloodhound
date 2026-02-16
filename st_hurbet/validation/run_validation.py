@@ -18,10 +18,14 @@ Options:
 """
 
 import sys
+import os
 import time
 import argparse
 from typing import Dict, Any
 import json
+
+# Add the validation directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 
 def run_s_entropy_validation() -> Dict[str, Any]:

@@ -15,8 +15,12 @@ from typing import List, Optional, Callable
 import hashlib
 import time
 
-from .s_entropy import SCoordinate, SEntropyCore
-from .ternary import TritAddress, TernaryEncoder
+try:
+    from .s_entropy import SCoordinate, SEntropyCore
+    from .ternary import TritAddress, TernaryEncoder
+except ImportError:
+    from s_entropy import SCoordinate, SEntropyCore
+    from ternary import TritAddress, TernaryEncoder
 
 
 @dataclass
@@ -86,7 +90,7 @@ class TrajectoryNavigator:
 
     Implements:
     - Navigation to target coordinates
-    - Completion detection at ε-boundary
+    - Completion detection at epsilon-boundary
     - Trajectory-based data retrieval
     """
 
@@ -253,7 +257,7 @@ class TrajectoryNavigator:
                 trajectory.path[-1] == trajectory.current
             )
 
-            # 4. Same trajectory → same address
+            # 4. Same trajectory -&gt; same address
             trajectory2 = Trajectory(
                 origin=trajectory.origin,
                 waypoints=trajectory.waypoints,
@@ -363,7 +367,7 @@ def validate_trajectory_navigation() -> dict:
     print(f"   - Position is current: {tpi['position_is_current']}")
     print(f"   - Address computed correctly: {tpi['address_computed']}")
     print(f"   - Path complete: {tpi['path_complete']}")
-    print(f"   - Same trajectory → same address: {tpi['same_trajectory_same_address']}")
+    print(f"   - Same trajectory -&gt; same address: {tpi['same_trajectory_same_address']}")
     print(f"   - Average trajectory length: {tpi['average_trajectory_length']:.1f}")
 
     # Test 2: Completion Equivalence

@@ -5,7 +5,7 @@ Implementation of the memory controller that operates as a categorical
 Maxwell demon, sorting data by categorical partition without thermodynamic
 cost due to the commutation of categorical and physical observables.
 
-Key theorem: [Ô_cat, Ô_phys] = 0
+Key theorem: [O_cat, O_phys] = 0
 Categorical and physical observables commute, enabling zero-cost
 categorical sorting.
 """
@@ -15,10 +15,16 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Tuple
 import time
 
-from .s_entropy import SCoordinate, SEntropyCore
-from .ternary import TritAddress, TernaryEncoder
-from .trajectory import Trajectory
-from .categorical_memory import CategoricalMemory, MemoryTier, MemoryCell
+try:
+    from .s_entropy import SCoordinate, SEntropyCore
+    from .ternary import TritAddress, TernaryEncoder
+    from .trajectory import Trajectory
+    from .categorical_memory import CategoricalMemory, MemoryTier, MemoryCell
+except ImportError:
+    from s_entropy import SCoordinate, SEntropyCore
+    from ternary import TritAddress, TernaryEncoder
+    from trajectory import Trajectory
+    from categorical_memory import CategoricalMemory, MemoryTier, MemoryCell
 
 
 @dataclass
@@ -37,7 +43,7 @@ class MaxwellDemon:
     Maxwell demon controller for categorical memory.
 
     Performs two operations:
-    1. Sorting by partition: Zero thermodynamic cost due to [Ô_cat, Ô_phys] = 0
+    1. Sorting by partition: Zero thermodynamic cost due to [O_cat, O_phys] = 0
     2. Trajectory prediction: Estimates next navigation target for prefetching
     """
 
@@ -207,7 +213,7 @@ class MaxwellDemon:
         """
         Verify that categorical sorting has zero thermodynamic cost.
 
-        The key theorem: [Ô_cat, Ô_phys] = 0 implies categorical
+        The key theorem: [O_cat, O_phys] = 0 implies categorical
         operations don't affect physical observables.
 
         Args:
@@ -221,7 +227,10 @@ class MaxwellDemon:
 
         for _ in range(n_tests):
             # Generate random cells
-            from .trajectory import Trajectory
+            try:
+                from .trajectory import Trajectory
+            except ImportError:
+                from trajectory import Trajectory
             cells = []
             for i in range(20):
                 coord = SCoordinate.random()
@@ -254,7 +263,7 @@ class MaxwellDemon:
 
     def verify_commutation_property(self, n_samples: int = 100) -> dict:
         """
-        Verify [Ô_cat, Ô_phys] = 0.
+        Verify [O_cat, O_phys] = 0.
 
         Categorical measurement should not affect physical state,
         and vice versa.
@@ -323,7 +332,10 @@ def validate_maxwell_demon() -> dict:
     print("MAXWELL DEMON CONTROLLER VALIDATION")
     print("=" * 60)
 
-    from .categorical_memory import CategoricalMemory
+    try:
+        from .categorical_memory import CategoricalMemory
+    except ImportError:
+        from categorical_memory import CategoricalMemory
 
     memory = CategoricalMemory(max_depth=15)
     demon = MaxwellDemon(memory)
@@ -342,7 +354,7 @@ def validate_maxwell_demon() -> dict:
     print(f"   Average sort time: {zero_cost['average_sort_time']*1000:.3f} ms")
 
     # Test 2: Commutation Property
-    print("\n2. Observable Commutation [Ô_cat, Ô_phys] = 0")
+    print("\n2. Observable Commutation [O_cat, O_phys] = 0")
     print("-" * 40)
 
     commutation = demon.verify_commutation_property(n_samples=100)

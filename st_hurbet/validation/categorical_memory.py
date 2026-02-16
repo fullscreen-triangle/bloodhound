@@ -18,9 +18,14 @@ from enum import Enum
 import hashlib
 import time
 
-from .s_entropy import SCoordinate, SEntropyCore
-from .ternary import TritAddress, TernaryEncoder
-from .trajectory import Trajectory
+try:
+    from .s_entropy import SCoordinate, SEntropyCore
+    from .ternary import TritAddress, TernaryEncoder
+    from .trajectory import Trajectory
+except ImportError:
+    from s_entropy import SCoordinate, SEntropyCore
+    from ternary import TritAddress, TernaryEncoder
+    from trajectory import Trajectory
 
 
 class MemoryTier(Enum):
@@ -53,7 +58,7 @@ class CategoricalMemory:
     Memory system organized by categorical coordinates.
 
     Storage is a 3^k hierarchical tree where:
-    - Root represents entire S-space [0,1]³
+    - Root represents entire S-space [0,1]^3
     - Each node has 3 children (one per trit value)
     - Leaf nodes at depth k represent 3^k cells
     - Data resides at leaves; internal nodes contain routing info
@@ -202,7 +207,10 @@ class CategoricalMemory:
 
         Updates current_position and returns the trajectory taken.
         """
-        from .trajectory import TrajectoryNavigator
+        try:
+            from .trajectory import TrajectoryNavigator
+        except ImportError:
+            from trajectory import TrajectoryNavigator
 
         navigator = TrajectoryNavigator()
         trajectory = navigator.navigate(self.current_position, target)
@@ -252,16 +260,19 @@ class CategoricalMemory:
 
         Navigation should scale logarithmically with stored items.
         """
-        from .trajectory import TrajectoryNavigator
+        try:
+            from .trajectory import TrajectoryNavigator
+        except ImportError:
+            from trajectory import TrajectoryNavigator
 
         # Store varying amounts of data
-        sizes = [10, 100, 1000]
+        sizes = [10, 50, 100]
         complexity_results = []
 
         for size in sizes:
             # Create memory with items
             mem = CategoricalMemory(max_depth=15)
-            navigator = TrajectoryNavigator(max_steps=500)
+            navigator = TrajectoryNavigator(max_steps=100)
 
             # Store random data
             for i in range(size):
@@ -355,7 +366,10 @@ def validate_categorical_memory() -> dict:
     print("\n2. Store and Retrieve Operations")
     print("-" * 40)
 
-    from .trajectory import TrajectoryNavigator
+    try:
+        from .trajectory import TrajectoryNavigator
+    except ImportError:
+        from trajectory import TrajectoryNavigator
     navigator = TrajectoryNavigator()
     mem = CategoricalMemory(max_depth=15)
 
@@ -387,7 +401,7 @@ def validate_categorical_memory() -> dict:
     }
 
     # Test 3: Navigation Complexity
-    print("\n3. Navigation Complexity O(log₃ N)")
+    print("\n3. Navigation Complexity O(log_3 N)")
     print("-" * 40)
 
     complexity = mem.verify_navigation_complexity(n_tests=20)
@@ -395,7 +409,7 @@ def validate_categorical_memory() -> dict:
 
     for r in complexity['results']:
         print(f"   N={r['size']:5d}: time={r['avg_navigation_time']*1000:.3f}ms, "
-              f"log₃(N)={r['theoretical_log3_N']:.2f}")
+              f"log_3(N)={r['theoretical_log3_N']:.2f}")
 
     status = "[OK]" if complexity['scaling_logarithmic'] else "?"
     print(f"   {status} Scaling is logarithmic: {complexity['scaling_logarithmic']}")

@@ -8,7 +8,7 @@ achieved through variance restoration rather than individual state tracking.
 Key theorems:
 - Central State Impossibility: Complete knowledge of individual node state
   requires infinite entropy
-- Variance Decay: σ²(t) = σ²_0 exp(-t/τ) with τ ≈ 0.5 ms
+- Variance Decay: sigma^2(t) = sigma^2_0 exp(-t/tau) with tau ~ 0.5 ms
 - Network-Gas Correspondence: Network properties map to gas properties
 """
 
@@ -18,14 +18,17 @@ from typing import List, Dict, Optional, Tuple
 from enum import Enum
 import time
 
-from .s_entropy import SCoordinate, SEntropyCore
+try:
+    from .s_entropy import SCoordinate, SEntropyCore
+except ImportError:
+    from s_entropy import SCoordinate, SEntropyCore
 
 
 class NetworkPhase(Enum):
     """Network phase based on variance (temperature)."""
-    GAS = 1      # σ² > 10^-3: Disordered, random arrivals
-    LIQUID = 2   # 10^-6 < σ² < 10^-3: Partial coordination
-    CRYSTAL = 3  # σ² < 10^-6: Perfect synchronization
+    GAS = 1      # sigma^2 > 10^-3: Disordered, random arrivals
+    LIQUID = 2   # 10^-6 < sigma^2 < 10^-3: Partial coordination
+    CRYSTAL = 3  # sigma^2 < 10^-6: Perfect synchronization
 
 
 @dataclass
@@ -53,13 +56,13 @@ class NetworkGasMapping:
     """
     Mapping between network and gas properties.
 
-    Network                 ↔    Gas
-    Nodes                   ↔    Molecules
-    Addresses x_i           ↔    Positions r_i
-    Queues q_i              ↔    Momenta p_i
-    Packet exchange         ↔    Collisions
-    Variance σ²             ↔    Temperature T
-    Load L                  ↔    Pressure P
+    Network                 &lt;-&gt;    Gas
+    Nodes                   &lt;-&gt;    Molecules
+    Addresses x_i           &lt;-&gt;    Positions r_i
+    Queues q_i              &lt;-&gt;    Momenta p_i
+    Packet exchange         &lt;-&gt;    Collisions
+    Variance sigma^2             &lt;-&gt;    Temperature T
+    Load L                  &lt;-&gt;    Pressure P
     """
     nodes: List[NetworkNode] = field(default_factory=list)
 
@@ -89,9 +92,9 @@ class VarianceRestoration:
     Variance restoration for distributed coordination.
 
     Implements exponential decay toward synchronized ground state:
-    σ²(t) = σ²_0 exp(-t/τ)
+    sigma^2(t) = sigma^2_0 exp(-t/tau)
 
-    τ ≈ 0.5 ms for local networks.
+    tau ~ 0.5 ms for local networks.
     """
 
     # Restoration timescale
@@ -143,7 +146,7 @@ class VarianceRestoration:
         """
         Perform one timestep of variance restoration.
 
-        σ²(t + dt) = σ²(t) * exp(-dt/τ)
+        sigma^2(t + dt) = sigma^2(t) * exp(-dt/tau)
 
         Args:
             dt: Time step (seconds)
@@ -162,7 +165,7 @@ class VarianceRestoration:
             )
 
             # Compute entropy rate
-            # dS/dt = k_B * d(ln σ)/dt ≈ k_B * (σ_new - σ_old) / (σ_old * dt)
+            # dS/dt = k_B * d(ln sigma)/dt ~ k_B * (sigma_new - sigma_old) / (sigma_old * dt)
             if old_temp > 1e-15:
                 node.entropy_rate = (
                     self.K_B * (node.temperature - old_temp) / (old_temp * dt)
@@ -212,7 +215,7 @@ class VarianceRestoration:
         vars_array = np.array([v[1] for v in variances])
 
         # Fit exponential decay
-        # ln(σ²) = ln(σ²_0) - t/τ
+        # ln(sigma^2) = ln(sigma^2_0) - t/tau
         log_vars = np.log(vars_array + 1e-20)
         fit_coeffs = np.polyfit(times, log_vars, 1)
         measured_tau = -1.0 / fit_coeffs[0] if fit_coeffs[0] != 0 else float('inf')
@@ -232,7 +235,7 @@ class VarianceRestoration:
         """
         Verify exponential decay theorem.
 
-        σ²(t) = σ²_0 exp(-t/τ)
+        sigma^2(t) = sigma^2_0 exp(-t/tau)
 
         Args:
             n_trials: Number of simulation trials
@@ -253,7 +256,7 @@ class VarianceRestoration:
         avg_tau = np.mean(tau_measurements)
         tau_std = np.std(tau_measurements)
 
-        # Check if measured τ is close to theoretical (within 20%)
+        # Check if measured tau is close to theoretical (within 20%)
         tau_correct = 0.8 * self.TAU < avg_tau < 1.2 * self.TAU
 
         return {
@@ -271,13 +274,13 @@ class VarianceRestoration:
         Verify the Central State Impossibility theorem.
 
         Complete knowledge of individual node state requires infinite entropy.
-        σ_position → 0 AND σ_momentum → 0 implies infinite energy.
+        sigma_position -&gt; 0 AND sigma_momentum -&gt; 0 implies infinite energy.
 
         Returns:
             Verification results
         """
-        # The uncertainty relation: σ_pos * σ_mom ≥ k_B * T * τ_corr
-        # Perfect knowledge (both → 0) requires infinite precision
+        # The uncertainty relation: sigma_pos * sigma_mom ≥ k_B * T * tau_corr
+        # Perfect knowledge (both -&gt; 0) requires infinite precision
 
         # Simulate attempting to reduce both uncertainties
         energies = []
@@ -285,13 +288,13 @@ class VarianceRestoration:
 
         for sigma_pos in position_uncertainties:
             # Heisenberg-like relation for networks
-            # E_meas ∝ 1/(σ_pos * σ_mom)
+            # E_meas ~ 1/(sigma_pos * sigma_mom)
             sigma_mom = sigma_pos  # Trying to reduce both equally
 
             measurement_energy = 1.0 / (sigma_pos * sigma_mom)
             energies.append((sigma_pos, measurement_energy))
 
-        # Check that energy → ∞ as uncertainty → 0
+        # Check that energy -&gt; infinity as uncertainty -&gt; 0
         energy_diverges = energies[-1][1] > 1e10
 
         return {
@@ -361,7 +364,7 @@ class VarianceRestoration:
         """
         Observe phase transitions during variance restoration.
 
-        Gas → Liquid → Crystal as variance decreases.
+        Gas -&gt; Liquid -&gt; Crystal as variance decreases.
 
         Returns:
             Phase transition observations
@@ -412,7 +415,7 @@ def validate_distributed_coordination() -> dict:
     results = {}
 
     # Test 1: Exponential Decay
-    print("\n1. Variance Decay: σ²(t) = σ²_0 exp(-t/τ)")
+    print("\n1. Variance Decay: sigma^2(t) = sigma^2_0 exp(-t/tau)")
     print("-" * 40)
 
     decay = vr.verify_exponential_decay(n_trials=5)
@@ -420,8 +423,8 @@ def validate_distributed_coordination() -> dict:
 
     status = "[OK]" if decay['theorem_verified'] else "[FAIL]"
     print(f"   {status} Exponential decay verified")
-    print(f"   Theoretical τ: {decay['theoretical_tau']*1000:.2f} ms")
-    print(f"   Measured τ: {decay['measured_tau_mean']*1000:.2f} ± {decay['measured_tau_std']*1000:.2f} ms")
+    print(f"   Theoretical tau: {decay['theoretical_tau']*1000:.2f} ms")
+    print(f"   Measured tau: {decay['measured_tau_mean']*1000:.2f} ± {decay['measured_tau_std']*1000:.2f} ms")
     print(f"   Ratio: {decay['tau_ratio']:.2f}")
 
     # Test 2: Central State Impossibility
@@ -433,10 +436,10 @@ def validate_distributed_coordination() -> dict:
 
     status = "[OK]" if impossibility['theorem_verified'] else "[FAIL]"
     print(f"   {status} Theorem verified: {impossibility['energy_diverges']}")
-    print(f"   As σ → 0, E_measurement → ∞")
+    print(f"   As sigma -&gt; 0, E_measurement -&gt; infinity")
     print(f"   Sample energies:")
     for sigma, energy in impossibility['uncertainty_energy_pairs'][:4]:
-        print(f"      σ = {sigma:.0e}: E = {energy:.2e}")
+        print(f"      sigma = {sigma:.0e}: E = {energy:.2e}")
 
     # Test 3: Phase Transitions
     print("\n3. Network Phase Transitions")
@@ -449,7 +452,7 @@ def validate_distributed_coordination() -> dict:
     print(f"   Final phase: {phases['final_phase']}")
     print(f"   Transitions observed: {len(phases['transitions'])}")
     for t in phases['transitions']:
-        print(f"      Step {t['step']}: {t['from']} → {t['to']} (σ² = {t['variance']:.2e})")
+        print(f"      Step {t['step']}: {t['from']} -&gt; {t['to']} (sigma^2 = {t['variance']:.2e})")
 
     status = "[OK]" if phases['reached_crystal'] else "[FAIL]"
     print(f"   {status} Reached crystal phase: {phases['reached_crystal']}")

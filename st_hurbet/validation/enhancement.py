@@ -4,14 +4,14 @@ Enhancement Mechanisms
 Implementation of the five multiplicative enhancement mechanisms for
 temporal precision through categorical state counting.
 
-Total enhancement: E_total ≈ 10^121
+Total enhancement: E_total ~ 10^121
 
 The five mechanisms:
 1. Ternary Encoding: (3/2)^k
 2. Multi-Modal Synthesis: n^(m(m-1)/2)
 3. Harmonic Coincidence: E/N (network edges/nodes)
-4. Trajectory Completion: ωτ/(2π)
-5. Continuous Refinement: exp(ωτ/N_0)
+4. Trajectory Completion: omegatau/(2pi)
+5. Continuous Refinement: exp(omegatau/N_0)
 """
 
 import numpy as np
@@ -52,8 +52,8 @@ class EnhancementMechanisms:
             trit_depth: Ternary encoding depth k
             n_modalities: Number of measurement modalities m
             states_per_modality: States resolved per modality n
-            oscillator_frequency: Process frequency ω (Hz)
-            observation_time: Observation duration τ (seconds)
+            oscillator_frequency: Process frequency omega (Hz)
+            observation_time: Observation duration tau (seconds)
             base_state_count: Base state count N_0
         """
         self.k = trit_depth
@@ -69,7 +69,7 @@ class EnhancementMechanisms:
 
         E_ternary = (3/2)^k
 
-        Ternary provides log_2(3) ≈ 1.585 bits per trit vs 1 bit per bit.
+        Ternary provides log_2(3) ~ 1.585 bits per trit vs 1 bit per bit.
         """
         value = (3/2) ** self.k
         log_value = self.k * np.log10(3/2)
@@ -145,7 +145,7 @@ class EnhancementMechanisms:
         """
         Calculate trajectory completion enhancement.
 
-        E_trajectory = ωτ / (2π)
+        E_trajectory = omegatau / (2pi)
 
         In bounded phase space, trajectory completion constitutes computation.
         The number of categorical states traversed during observation.
@@ -164,7 +164,7 @@ class EnhancementMechanisms:
         """
         Calculate continuous refinement enhancement.
 
-        E_refine = exp(ωτ / N_0)
+        E_refine = exp(omegatau / N_0)
 
         Non-halting dynamics continuously refine categorical resolution.
         Integration accumulates states exponentially.
@@ -189,7 +189,7 @@ class EnhancementMechanisms:
         """
         Calculate total enhancement from all mechanisms.
 
-        E_total = Π E_i ≈ 10^121
+        E_total = Product E_i ~ 10^121
 
         Returns:
             Dictionary with all enhancements and total
@@ -209,14 +209,14 @@ class EnhancementMechanisms:
             'mechanisms': mechanisms,
             'total_log10': total_log,
             'total_exponent': int(total_log),
-            'formula': "E_total = E_ternary × E_modal × E_harmonic × E_trajectory × E_refine"
+            'formula': "E_total = E_ternary * E_modal * E_harmonic * E_trajectory * E_refine"
         }
 
     def temporal_precision(self, hardware_resolution: float = 1e-12) -> Dict:
         """
         Calculate achievable temporal precision.
 
-        δt = δt_hardware / E_total
+        deltat = deltat_hardware / E_total
 
         Args:
             hardware_resolution: Hardware timing resolution (seconds)
@@ -227,7 +227,7 @@ class EnhancementMechanisms:
         total = self.total_enhancement()
         total_log = total['total_log10']
 
-        # δt = δt_hw / 10^total_log
+        # deltat = deltat_hw / 10^total_log
         log_precision = np.log10(hardware_resolution) - total_log
 
         return {
@@ -290,14 +290,14 @@ def validate_enhancement_mechanisms() -> dict:
     # Trajectory
     trajectory = calc.trajectory_completion()
     print(f"   {trajectory.name}:")
-    print(f"      Formula: ωτ/(2π) with ω={trajectory.parameters['omega']:.0e} Hz, τ={trajectory.parameters['tau']} s")
+    print(f"      Formula: omegatau/(2pi) with omega={trajectory.parameters['omega']:.0e} Hz, tau={trajectory.parameters['tau']} s")
     print(f"      Value: 10^{trajectory.log10_value:.1f}")
     mechanisms_results.append(trajectory)
 
     # Refinement
     refine = calc.continuous_refinement()
     print(f"   {refine.name}:")
-    print(f"      Formula: exp(ωτ/N_0) with N_0={refine.parameters['N_0']:.0e}")
+    print(f"      Formula: exp(omegatau/N_0) with N_0={refine.parameters['N_0']:.0e}")
     print(f"      Value: 10^{refine.log10_value:.1f}")
     mechanisms_results.append(refine)
 
@@ -380,7 +380,7 @@ def validate_enhancement_mechanisms() -> dict:
     results['sensitivities'] = sensitivities
 
     # Test 5: Scaling Law
-    print("\n5. Precision Scaling Law: δt ∝ N_states^(-1)")
+    print("\n5. Precision Scaling Law: deltat ~ N_states^(-1)")
     print("-" * 40)
 
     # Precision should scale inversely with state count
@@ -388,10 +388,10 @@ def validate_enhancement_mechanisms() -> dict:
     precisions = []
 
     for N in state_counts:
-        # δt ∝ 1/N
+        # deltat ~ 1/N
         delta_t = 1.0 / N
         precisions.append((N, delta_t))
-        print(f"   N = 10^{np.log10(N):.0f}: δt = 10^{np.log10(delta_t):.0f} (relative)")
+        print(f"   N = 10^{np.log10(N):.0f}: deltat = 10^{np.log10(delta_t):.0f} (relative)")
 
     # Verify inverse relationship
     log_N = [np.log10(p[0]) for p in precisions]
@@ -399,7 +399,7 @@ def validate_enhancement_mechanisms() -> dict:
     slope = np.polyfit(log_N, log_dt, 1)[0]
 
     inverse_scaling = abs(slope + 1.0) < 0.1  # Should be -1
-    print(f"\n   Slope of log(δt) vs log(N): {slope:.2f}")
+    print(f"\n   Slope of log(deltat) vs log(N): {slope:.2f}")
     status = "[OK]" if inverse_scaling else "[FAIL]"
     print(f"   {status} Inverse scaling verified: {inverse_scaling} (expected slope = -1)")
 

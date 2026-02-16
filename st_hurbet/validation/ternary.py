@@ -6,15 +6,18 @@ Ternary naturally encodes three-dimensional information, with each trit
 specifying refinement along one of the three S-coordinates.
 
 Key theorems:
-- Trit-Cell Correspondence: k-trit string ↔ one cell in 3^k partition
+- Trit-Cell Correspondence: k-trit string &lt;-&gt; one cell in 3^k partition
 - Trajectory-Position Identity: trit sequence = position = trajectory
-- Continuous Emergence: as k→∞, discrete cells → continuous [0,1]³
+- Continuous Emergence: as k-&gt;infinity, discrete cells -&gt; continuous [0,1]^3
 """
 
 import numpy as np
 from dataclasses import dataclass
 from typing import List, Tuple, Optional
-from .s_entropy import SCoordinate
+try:
+    from .s_entropy import SCoordinate
+except ImportError:
+    from s_entropy import SCoordinate
 
 
 @dataclass
@@ -125,7 +128,7 @@ class TernaryEncoder:
             dim = int(np.argmax(values))
             trits.append(dim)
 
-            # Refine that dimension: extract fractional part after ×3
+            # Refine that dimension: extract fractional part after *3
             values[dim] = 3 * values[dim] - np.floor(3 * values[dim])
 
         return TritAddress(trits=trits)
@@ -253,7 +256,7 @@ class TernaryEncoder:
         """
         Verify the Continuous Emergence Theorem.
 
-        As k→∞, the discrete cell structure converges to continuous [0,1]³.
+        As k-&gt;infinity, the discrete cell structure converges to continuous [0,1]^3.
         The convergence is exact, not approximate.
 
         Args:
@@ -386,7 +389,7 @@ def validate_ternary_representation() -> dict:
     print(f"   {status} Convergence verified: {ce['converging']}")
     print(f"   Errors by depth:")
     for d, e in zip(ce['depths'], ce['average_errors']):
-        print(f"      k={d:2d}: ε = {e:.6f}")
+        print(f"      k={d:2d}: eps = {e:.6f}")
 
     # Test 5: 3^k Hierarchy Structure
     print("\n5. 3^k Hierarchy Structure")

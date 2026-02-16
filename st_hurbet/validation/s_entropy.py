@@ -216,15 +216,15 @@ class SEntropyCore:
         epsilon: float = 1e-6
     ) -> Tuple[float, float]:
         """
-        Compute the ε-boundary around a target coordinate.
+        Compute the epsilon-boundary around a target coordinate.
 
-        The ε-boundary is the region:
-        ∂_ε(S_target) = {S : 0 < d_cat(S, S_target) ≤ ε}
+        The epsilon-boundary is the region:
+        ∂_epsilon(S_target) = {S : 0 < d_cat(S, S_target) ≤ epsilon}
 
         Returns (inner_radius, outer_radius) of the boundary shell.
         """
-        # The ε-boundary excludes exact closure (d = 0)
-        # and includes all points within ε categorical distance
+        # The epsilon-boundary excludes exact closure (d = 0)
+        # and includes all points within epsilon categorical distance
         inner_radius = 0.0  # Excluded
         outer_radius = epsilon
 
@@ -237,10 +237,10 @@ class SEntropyCore:
         epsilon: float = 1e-6
     ) -> dict:
         """
-        Check if current position is at the ε-boundary (completion).
+        Check if current position is at the epsilon-boundary (completion).
 
         Completion occurs when:
-        0 < d_cat(current, target) ≤ ε
+        0 < d_cat(current, target) ≤ epsilon
         """
         d_cat = self.categorical_distance(current, target)
 
@@ -315,7 +315,7 @@ def validate_s_entropy_coordinates() -> dict:
         results['invalid_coordinate_rejected'] = True
 
     # Test 4: Completion Detection
-    print("\n4. ε-Boundary Completion Detection")
+    print("\n4. epsilon-Boundary Completion Detection")
     print("-" * 40)
 
     target = SCoordinate(s_k=0.5, s_t=0.5, s_e=0.5)
