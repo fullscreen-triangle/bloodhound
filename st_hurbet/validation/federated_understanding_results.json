@@ -1,0 +1,161 @@
+{
+  "validation": "Federated Understanding Framework",
+  "problem": "ACTN3 R577X and cardiac adaptation in elite athletes",
+  "timestamp": "2026-03-14T09:30:59",
+  "stages": {
+    "parsing": {
+      "question": "Association between ACTN3 genotype and cardiac adaptation in elite sprinters",
+      "constraints": {
+        "confidence": 0.95,
+        "significance": 0.01
+      },
+      "num_statements": 7,
+      "num_slices": 3,
+      "slice_sources": [
+        "genomics.ACTN3",
+        "echocardiography",
+        "proteomics"
+      ],
+      "status": "PASS"
+    },
+    "extraction": {
+      "genotype": {
+        "source": "genomics",
+        "raw_bytes": 65000000000,
+        "extracted_bytes": 227,
+        "compression_ratio": 3.4923076923076922e-09,
+        "s_entropy": {
+          "s_k": 0.3,
+          "s_t": 0.1,
+          "s_e": 0.6
+        },
+        "signature_keys": [
+          "variant_id",
+          "ncbi_ids",
+          "record_count",
+          "source",
+          "gene",
+          "gwas_associations",
+          "associated_traits",
+          "gwas_source"
+        ],
+        "status": "PASS"
+      },
+      "cardiac": {
+        "source": "echocardiography",
+        "raw_bytes": 50000000000,
+        "extracted_bytes": 312,
+        "compression_ratio": 6.24e-09,
+        "s_entropy": {
+          "s_k": 0.35,
+          "s_t": 0.2,
+          "s_e": 0.45
+        },
+        "signature_keys": [
+          "gene",
+          "ncbi_gene_id",
+          "geo_dataset_count",
+          "geo_dataset_ids",
+          "expression_context",
+          "surgical_note",
+          "source"
+        ],
+        "status": "PASS"
+      },
+      "protein": {
+        "source": "proteomics",
+        "raw_bytes": 120000000000,
+        "extracted_bytes": 429,
+        "compression_ratio": 3.575e-09,
+        "s_entropy": {
+          "s_k": 0.4,
+          "s_t": 0.15,
+          "s_e": 0.45
+        },
+        "signature_keys": [
+          "uniprot_id",
+          "protein_name",
+          "gene_names",
+          "functions",
+          "tissue_expression",
+          "sequence_length",
+          "tissue_filter_applied",
+          "source"
+        ],
+        "status": "PASS"
+      }
+    },
+    "composition": {
+      "num_compositions": 2,
+      "final_temperature": 0.4144871794871795,
+      "convergence_history": [
+        0.44999999999999996,
+        0.425,
+        0.425,
+        0.41875,
+        0.4144871794871795
+      ],
+      "status": "PASS"
+    },
+    "paradigm_comparison": {
+      "centralized": {
+        "network_transfer": 235000000000,
+        "human": "218.9 GB",
+        "complexity": "O(|D|)"
+      },
+      "federated_learning": {
+        "network_transfer": 300000000,
+        "human": "286.1 MB",
+        "complexity": "O(H(D))",
+        "note": "3 nodes \u00d7 100MB model parameters"
+      },
+      "federated_understanding": {
+        "network_transfer": 968,
+        "human": "968.0 B",
+        "complexity": "O(I(D; A_Q))",
+        "note": "Only question-relevant understanding transmitted"
+      },
+      "ratios": {
+        "centralized_vs_understanding": 242768595.04132232,
+        "fedlearning_vs_understanding": 309917.35537190083,
+        "data_reduction_factor": "2e+08"
+      }
+    },
+    "analysis_graph": {
+      "num_sources": 3,
+      "num_compositions": 2,
+      "total_nodes": 5,
+      "current_temperature": 0.4144871794871795,
+      "converged": false,
+      "phases": {
+        "genomics_rs1815739": "liquid",
+        "transcriptomics_ACTN3": "liquid",
+        "proteomics_alpha_actinin_3": "liquid",
+        "composed_genomics_rs1815739_transcriptomics_ACTN3": "liquid",
+        "composed_composed_genomics_rs1815739_transcriptomics_ACTN3_proteomics_alpha_actinin_3": "liquid"
+      },
+      "data_available_bytes": 235000000000,
+      "data_extracted_bytes": 968,
+      "compression_ratio": 4.1191489361702125e-09,
+      "data_available_human": "218.9 GB",
+      "data_extracted_human": "968.0 B",
+      "convergence_history": [
+        0.44999999999999996,
+        0.425,
+        0.425,
+        0.41875,
+        0.4144871794871795
+      ]
+    }
+  },
+  "checks": {
+    "protocol_parsed": true,
+    "all_sources_extracted": true,
+    "compression_achieved": true,
+    "compositions_performed": true,
+    "temperature_decreased": true,
+    "cross_modal_links_found": true,
+    "paradigm_advantage": true
+  },
+  "all_passed": true
+}
