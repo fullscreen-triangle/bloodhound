@@ -4,31 +4,30 @@ import Layout from "./Layout";
 
 const Footer = () => {
   return (
-    <footer
-      className="w-full border-t-2 border-solid border-dark
-    font-medium text-lg dark:text-light dark:border-light sm:text-base
-    "
-    >
-      <Layout className="py-8 flex items-center justify-between lg:flex-col lg:py-6">
-        <span>{new Date().getFullYear()} &copy; All Rights Reserved.</span>
+    <footer className="w-full border-t border-solid border-primary/10 text-muted text-sm">
+      <Layout className="!py-8 flex items-center justify-between lg:flex-col lg:py-6 lg:gap-4">
+        <span>{new Date().getFullYear()} Bloodhound Framework. All rights reserved.</span>
 
-        <div className="flex items-center lg:py-2">
-          Built with <span className="text-primary text-2xl px-1 dark:text-primaryDark">&#9825;	</span> by&nbsp;
-          <Link
-            href="https://devdreaming.com"
-            target="_blank"
-            className="underline underline-offset-2"
-          >
-            CodeBucks
+        <nav className="flex items-center gap-6">
+          <Link href="/phase-space" className="hover:text-primary transition-colors">
+            Phase Space
           </Link>
-        </div>
+          <Link href="/compilation" className="hover:text-primary transition-colors">
+            Compilation
+          </Link>
+          <Link href="/federated" className="hover:text-primary transition-colors">
+            Federated
+          </Link>
+          <Link href="/collaborate" className="hover:text-primary transition-colors">
+            Collaborate
+          </Link>
+        </nav>
 
         <Link
-          href="https://devdreaming.com/about"
-          target="_blank"
-          className="underline underline-offset-2"
+          href="mailto:contact@bloodhound.dev"
+          className="text-primary hover:text-primary/80 transition-colors"
         >
-          Say Hello
+          contact@bloodhound.dev
         </Link>
       </Layout>
     </footer>

@@ -3,6 +3,8 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{amsmath,amssymb,amsthm}
+\usepackage{stmaryrd}   % For \llbracket and \rrbracket
+\usepackage{mathrsfs}   % For script S
 \usepackage{mathtools}
 \usepackage{graphicx}
 \usepackage{booktabs}
@@ -53,6 +55,8 @@
 \newcommand{\graph}{\mathcal{G}}
 \newcommand{\node}{\mathcal{N}}
 \newcommand{\vocab}{\mathcal{V}}
+\newcommand{\Sk}{\mathscr{S}_k}
+\newcommand{\Se}{\mathscr{S}_e}
 
 % Listing style for research protocol DSL
 \lstdefinelanguage{Protocol}{
@@ -88,7 +92,8 @@
 
 \author{
 Kundai Farai Sachikonye\\
-\texttt{kundai.sachikonye@wzw.tum.de}
+AIMe Registry for Artificial Intelligence\\
+\texttt{kundai.sachikonye@bitspark.com}
 }
 
 \date{\today}
@@ -395,6 +400,13 @@ converge at confidence > 0.95
 
 In this protocol, the researcher specifies \emph{what} is to be investigated, \emph{what evidence} is needed from each source, and \emph{what constitutes} a valid conclusion. The system handles \emph{how}: which domain models to invoke, what morphism chains to construct, how to allocate computational resources across the multi-stage pipeline, and when the analysis has converged. The researcher writes the protocol and receives a validated answer with full trajectory provenance.
 
+\begin{figure*}[!htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/fed_panel_1_protocol_parsed.png}
+\caption{Protocol parsing validation. (a) Morphism chains from three source domains converging to target in $\Sspace$-space. (b) Statement type distribution across the protocol. (c) Filter dimensionality per extraction source. (d) Constraint satisfaction surface with target at confidence $> 0.95$, significance $< 0.01$.}
+\label{fig:panel1}
+\end{figure*}
+
 %==============================================================================
 \section{Problem-Directed Compilation}
 \label{sec:compilation}
@@ -452,6 +464,13 @@ For surgical research questions against large datasets, $\rho \sim 10^{-3}$ to $
 \end{corollary}
 
 This corollary quantifies the efficiency of surgical extraction. A research question about ACTN3 genotype in 500 sprinters, answered from a 70\,GB whole-genome sequencing archive, extracts $\sim$10\,KB of relevant information: $\rho \approx 10^{-7}$.
+
+\begin{figure*}[!htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/fed_panel_3_compression_achieved.png}
+\caption{Information minimality validation. (a) 3D landscape showing $I(\dataset; \answer_\question)$ surface beneath $H(\dataset)$ plane. (b) Surgical reduction waterfall: full datasets $\to$ remove irrelevant $\to$ remove redundant $\to$ surgical extract. (c) Dual-axis comparison of $H(\dataset)$ (GB) vs.\ $I(\dataset; \answer_\question)$ (bytes). (d) Compression depth: all sources exceed the $10^{-6}$ threshold by three orders of magnitude.}
+\label{fig:panel3}
+\end{figure*}
 
 \subsection{Compilation Decomposition}
 
@@ -596,6 +615,13 @@ Composition operates on categorical coordinates in $\Sspace$, which are modality
 
 The morphism chain produced by compilation must be executed through a reasoning process that replaces the human researcher's iterative analysis. We formalize this as a metacognitive refinement pipeline---a multi-stage optimization architecture that decomposes research questions, allocates resources, generates diverse candidate analyses, scores quality, and iteratively refines toward convergence.
 
+\begin{figure*}[!htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/fed_panel_2_sources_extracted.png}
+\caption{Multi-source surgical extraction. (a) Fragment coordinates in $\Sspace$-space with conservation plane. (b) Available vs.\ extracted data on log scale, showing $10^8$--$10^9\times$ reduction per source. (c) Extraction density: bytes per signature field. (d) Polar validation: all five extraction criteria satisfied across all three modalities.}
+\label{fig:panel2}
+\end{figure*}
+
 \subsection{The Metacognitive Architecture}
 
 The term ``metacognitive'' denotes the system's capacity to reason about its own reasoning process \cite{flavell1979}---to assess the quality of intermediate results, detect when a line of analysis is unproductive, and redirect computational resources accordingly.
@@ -707,6 +733,8 @@ with dimension weights $w_d$ adapted based on the research question's requiremen
 \end{definition}
 
 Quality evaluation is performed by dedicated evaluation models---language models fine-tuned specifically for assessing research quality in the relevant domain, analogous to reward models in reinforcement learning from human feedback but specialized to scientific rigor rather than human preference.
+
+
 
 \subsection{Iterative Refinement}
 
@@ -846,6 +874,13 @@ Cross-node composition preserves:
 
 (3) Trajectory concatenation $\|$ extends the ternary address. By Theorem~\ref{thm:trajectory_position}, the extended trajectory encodes the composed position, the complete multi-node path, and the unique identifier of the composed result. These are the same object.
 \end{proof}
+
+\begin{figure*}[!htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/fed_panel_4_compositions_performed.png}
+\caption{Understanding fragment composition. (a) Composition trajectory through $\Sspace$-space: source fragments converge via Bézier paths. (b) Analysis DAG structure with join key \texttt{athlete\_id}. (c) S-entropy conservation: $\Sk + \St + \Se$ remains constant through composition. (d) Information gain and cross-modal link accumulation through successive compositions.}
+\label{fig:panel4}
+\end{figure*}
 
 %==============================================================================
 \section{Multi-Expert Validation and Formal Verification}
@@ -988,6 +1023,13 @@ where $N_{\text{nodes}}$ is the number of contributing nodes, $H(\question)$ is 
 More nodes provide more independent understanding fragments, reducing variance by $\sqrt{N}$ (central limit theorem). Question complexity $H(\question)$ increases the initial temperature (more dispersed fragments). Pipeline throughput $R_{\text{pipeline}}$ determines how quickly fragments are refined. The ratio gives the characteristic timescale.
 \end{proof}
 
+\begin{figure*}[!htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/fed_panel_5_temperature_decreased.png}
+\caption{Analysis temperature convergence. (a) 3D temperature evolution surface with phase boundaries at $T = 0.2$ (crystal) and $T = 0.5$ (liquid). (b) Convergence curve with exponential decay fit $T_0 e^{-\lambda n}$ and phase region shading. (c) Phase transition dynamics: fraction of nodes in gas/liquid/crystal phases over analysis steps. (d) Temperature gradient field in $(\Sk, \Se)$ plane with fragment positions.}
+\label{fig:panel5}
+\end{figure*}
+
 \subsection{Phase Transitions in the Analysis}
 
 The analysis graph undergoes phase transitions analogous to thermodynamic phase transitions:
@@ -1102,75 +1144,52 @@ We validate the federated understanding framework on a concrete multi-omics prob
 
 The Triangle protocol specification is parsed into 3 surgical extraction targets, 2 composition operations, 1 navigation chain, 2 validation steps, and 1 convergence criterion. Each \texttt{slice} statement maps to a morphism chain $\morphism_{\text{extract}}$ through $\Sspace$-space, with filters constraining the extraction to question-relevant subsets (Figure~\ref{fig:panel1}).
 
-\begin{figure*}[t]
+\begin{figure*}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{fed_panel_1_protocol_parsed.png}
-\caption{Protocol parsing validation. (a) Morphism chains from three source domains converging to target in $\Sspace$-space. (b) Statement type distribution across the protocol. (c) Filter dimensionality per extraction source. (d) Constraint satisfaction surface with target at confidence $> 0.95$, significance $< 0.01$.}
-\label{fig:panel1}
+\includegraphics[width=\textwidth]{figures/fed_panel_6_cross_modal_links.png}
+\caption{Cross-modal link discovery. (a) 3D link geometry: modalities as vertices with weighted connections. (b) Cross-modal adjacency heatmap showing link strength between domains. (c) Link type distribution: shared terms, gene--protein links, and tissue context. (d) Connectivity index growth through successive compositions.}
+\label{fig:panel6}
 \end{figure*}
+
 
 \subsection{Multi-Source Surgical Extraction}
 
 All three domain-specific extractors successfully return understanding fragments from live APIs. Each fragment occupies a distinct region of $\Sspace = [0,1]^3$: genomics at $(\Sk, \St, \Se) = (0.30, 0.10, 0.60)$, transcriptomics at $(0.35, 0.20, 0.45)$, and proteomics at $(0.40, 0.15, 0.45)$, reflecting different knowledge--temporal--evolution entropy distributions across modalities (Figure~\ref{fig:panel2}).
 
-\begin{figure*}[t]
-\centering
-\includegraphics[width=\textwidth]{fed_panel_2_sources_extracted.png}
-\caption{Multi-source surgical extraction. (a) Fragment coordinates in $\Sspace$-space with conservation plane. (b) Available vs.\ extracted data on log scale, showing $10^8$--$10^9\times$ reduction per source. (c) Extraction density: bytes per signature field. (d) Polar validation: all five extraction criteria satisfied across all three modalities.}
-\label{fig:panel2}
-\end{figure*}
+
 
 \subsection{Information Minimality}
 
 The compression ratios confirm Theorem~\ref{thm:minimality}. From 65~GB of dbSNP, 227~bytes are extracted (ratio $3.5 \times 10^{-9}$). From 50~GB of GEO expression data, 312~bytes (ratio $6.2 \times 10^{-9}$). From 120~GB of UniProt, 429~bytes (ratio $3.6 \times 10^{-9}$). The overall compression across all sources is $4.1 \times 10^{-9}$: 968 bytes extracted from 218.9~GB available. This validates $I(\dataset; \answer_\question) \ll H(\dataset)$ (Figure~\ref{fig:panel3}).
 
-\begin{figure*}[t]
-\centering
-\includegraphics[width=\textwidth]{fed_panel_3_compression_achieved.png}
-\caption{Information minimality validation. (a) 3D landscape showing $I(\dataset; \answer_\question)$ surface beneath $H(\dataset)$ plane. (b) Surgical reduction waterfall: full datasets $\to$ remove irrelevant $\to$ remove redundant $\to$ surgical extract. (c) Dual-axis comparison of $H(\dataset)$ (GB) vs.\ $I(\dataset; \answer_\question)$ (bytes). (d) Compression depth: all sources exceed the $10^{-6}$ threshold by three orders of magnitude.}
-\label{fig:panel3}
-\end{figure*}
+
 
 \subsection{Understanding Composition}
 
 Two composition operations are executed: genomics $\oplus$ transcriptomics, then the result $\oplus$ proteomics. The composition morphism $\morphism_{\text{compose}}$ produces new fragments with decreasing knowledge entropy ($\Sk$: $0.30 \to 0.27 \to 0.29$) and increasing cross-modal links (0 $\to$ 3 $\to$ 4), while preserving S-entropy conservation (Figure~\ref{fig:panel4}).
 
-\begin{figure*}[t]
-\centering
-\includegraphics[width=\textwidth]{fed_panel_4_compositions_performed.png}
-\caption{Understanding fragment composition. (a) Composition trajectory through $\Sspace$-space: source fragments converge via Bézier paths. (b) Analysis DAG structure with join key \texttt{athlete\_id}. (c) S-entropy conservation: $\Sk + \St + \Se$ remains constant through composition. (d) Information gain and cross-modal link accumulation through successive compositions.}
-\label{fig:panel4}
-\end{figure*}
+
 
 \subsection{Temperature Convergence}
 
 The analysis temperature decreases monotonically from $T = 0.450$ (initial genomics extraction) through $T = 0.425$ and converges to $T = 0.414$ after final composition. All nodes remain in the liquid phase ($0.2 < T < 0.5$), consistent with the analysis being partially converged but not yet crystallized---the system requires additional refinement iterations beyond this proof-of-concept to reach the crystal phase (Figure~\ref{fig:panel5}).
 
-\begin{figure*}[t]
-\centering
-\includegraphics[width=\textwidth]{fed_panel_5_temperature_decreased.png}
-\caption{Analysis temperature convergence. (a) 3D temperature evolution surface with phase boundaries at $T = 0.2$ (crystal) and $T = 0.5$ (liquid). (b) Convergence curve with exponential decay fit $T_0 e^{-\lambda n}$ and phase region shading. (c) Phase transition dynamics: fraction of nodes in gas/liquid/crystal phases over analysis steps. (d) Temperature gradient field in $(\Sk, \Se)$ plane with fragment positions.}
-\label{fig:panel5}
-\end{figure*}
+
 
 \subsection{Cross-Modal Link Discovery}
 
 The composition operations discover semantic links across modalities: shared terms (\texttt{ACTN3}), gene--protein links (\texttt{ACTN3} appearing in both genomic variant and protein annotations), and tissue context (\texttt{cardiac\_muscle} appearing in expression and protein data). The first composition yields 3 links; the second yields 4, demonstrating that composition creates new cross-modal connections rather than merely concatenating information (Figure~\ref{fig:panel6}).
 
-\begin{figure*}[t]
-\centering
-\includegraphics[width=\textwidth]{fed_panel_6_cross_modal_links.png}
-\caption{Cross-modal link discovery. (a) 3D link geometry: modalities as vertices with weighted connections. (b) Cross-modal adjacency heatmap showing link strength between domains. (c) Link type distribution: shared terms, gene--protein links, and tissue context. (d) Connectivity index growth through successive compositions.}
-\label{fig:panel6}
-\end{figure*}
+
 
 \subsection{Paradigm Comparison}
 
 The empirical data confirms Theorem~\ref{thm:paradigm_comparison}. Centralized analysis would transfer 218.9~GB ($\mathcal{O}(|\dataset|)$). Federated learning would transfer approximately 286.1~MB ($\mathcal{O}(H(\dataset))$, 3 nodes $\times$ 100~MB model parameters). Federated understanding transfers 968~bytes ($\mathcal{O}(I(\dataset; \answer_\question))$). The reduction factors are $2.4 \times 10^8\times$ vs.\ centralized and $3.1 \times 10^5\times$ vs.\ federated learning. This gap widens linearly with the number of data sources (Figure~\ref{fig:panel7}).
 
-\begin{figure*}[t]
+
+\begin{figure*}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{fed_panel_7_paradigm_advantage.png}
+\includegraphics[width=\textwidth]{figures/fed_panel_7_paradigm_advantage.png}
 \caption{Paradigm comparison (Theorem~\ref{thm:paradigm_comparison} validation). (a) 3D paradigm efficiency space: data processed vs.\ network traffic vs.\ answer quality. (b) Log-scale network transfer: 218.9~GB (centralized) vs.\ 286.1~MB (federated learning) vs.\ 968~B (federated understanding). (c) Scaling projection: the gap widens to $2 \times 10^{8}\times$ as source count increases. (d) Privacy--efficiency Pareto frontier showing federated understanding at the optimal corner.}
 \label{fig:panel7}
 \end{figure*}

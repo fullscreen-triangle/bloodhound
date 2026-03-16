@@ -6,7 +6,6 @@ module.exports = {
     "./app/**/*.{js,ts,jsx,tsx}",
     "./pages/**/*.{js,ts,jsx,tsx}",
     "./components/**/*.{js,ts,jsx,tsx}",
-    // Or if using `src` directory:
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   darkMode: "class",
@@ -16,58 +15,54 @@ module.exports = {
         mont: ["var(--font-mont)", ...fontFamily.sans],
       },
       colors: {
-        dark: "#1b1b1b",
-        light: "#f5f5f5",
-        primary: "#B63E96", // 240,86,199 #F056C7
-        primaryDark: "#58E6D9", // 80,230,217
+        dark: "#0a0a0f",
+        darkSecondary: "#12121a",
+        darkTertiary: "#1a1a28",
+        light: "#f0f0f5",
+        primary: "#2A9D8F",
+        primaryDark: "#2A9D8F",
+        accent: "#F4A261",
+        danger: "#E63946",
+        muted: "#8888aa",
+        surface: "#16161f",
       },
       animation: {
         "spin-slow": "spin 8s linear infinite",
+        "pulse-slow": "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "float": "float 6s ease-in-out infinite",
+        "glow": "glow 2s ease-in-out infinite alternate",
+      },
+      keyframes: {
+        float: {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-20px)" },
+        },
+        glow: {
+          "0%": { boxShadow: "0 0 20px rgba(42, 157, 143, 0.2)" },
+          "100%": { boxShadow: "0 0 40px rgba(42, 157, 143, 0.4)" },
+        },
       },
       backgroundImage: {
-        circularLight:
-          "repeating-radial-gradient(rgba(0,0,0,0.4) 2px,#f5f5f5 5px,#f5f5f5 100px)",
-        circularDark:
-          "repeating-radial-gradient(rgba(255,255,255,0.5) 2px,#1b1b1b 8px,#1b1b1b 100px)",
-        circularLightLg:
-          "repeating-radial-gradient(rgba(0,0,0,0.4) 2px,#f5f5f5 5px,#f5f5f5 80px)",
-
-        circularDarkLg:
-          "repeating-radial-gradient(rgba(255,255,255,0.5) 2px,#1b1b1b 8px,#1b1b1b 80px)",
-        circularLightMd:
-          "repeating-radial-gradient(rgba(0,0,0,0.4) 2px,#f5f5f5 5px,#f5f5f5 60px)",
-
-        circularDarkMd:
-          "repeating-radial-gradient(rgba(255,255,255,0.5) 2px,#1b1b1b 8px,#1b1b1b 60px)",
-
-        circularLightSm:
-          "repeating-radial-gradient(rgba(0,0,0,0.4) 2px,#f5f5f5 5px,#f5f5f5 40px)",
-
-        circularDarkSm:
-          "repeating-radial-gradient(rgba(255,255,255,0.5) 2px,#1b1b1b 8px,#1b1b1b 40px)",
+        "grid-pattern":
+          "linear-gradient(rgba(42,157,143,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(42,157,143,0.03) 1px, transparent 1px)",
+        "radial-dark":
+          "radial-gradient(ellipse at center, rgba(42,157,143,0.08) 0%, transparent 70%)",
+      },
+      backgroundSize: {
+        grid: "60px 60px",
       },
       boxShadow: {
-        "3xl": "0 15px 15px 1px rgba(80,230,217, 0.4)",
+        glow: "0 0 30px rgba(42, 157, 143, 0.15)",
+        "glow-lg": "0 0 60px rgba(42, 157, 143, 0.2)",
       },
     },
     screens: {
       "2xl": { max: "1535px" },
-      // => @media (max-width: 1535px) { ... }
-
       xl: { max: "1279px" },
-      // => @media (max-width: 1279px) { ... }
-
       lg: { max: "1023px" },
-      // => @media (max-width: 1023px) { ... }
-
       md: { max: "767px" },
-      // => @media (max-width: 767px) { ... }
-
       sm: { max: "639px" },
-      // => @media (max-width: 639px) { ... }
-
       xs: { max: "479px" },
-      // => @media (max-width: 479px) { ... }
     },
   },
   plugins: [
