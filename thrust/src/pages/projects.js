@@ -3,6 +3,6 @@ import { useRouter } from "next/router";
 
 export default function Projects() {
   const router = useRouter();
-  useEffect(() => { router.replace("/validation"); }, [router]);
+  useEffect(() => { router.replace("/docs"); }, [router]);
   return null;
 }
