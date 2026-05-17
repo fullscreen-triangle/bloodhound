@@ -596,7 +596,7 @@ Theorem~\ref{thm:ccconvergence} formalises the empirical observation that interd
 \label{thm:motivation}
 Let $\{\mathcal{A}_i\}_{i=1}^n$ be agents with potentially distinct partition potentials $\Phi_i$ (different goals).  The composite floor of the multi-agent system depends only on the individual partition density floors $\beta_i$, not on the goal content encoded in $\Phi_i$:
 \begin{equation}
-  \beta_{\mathrm{composite}} = \sum_{i=1}^n \beta_i - \frac{1}{\Sigma}\sum_{i < j}\beta_i\beta_j + \cdots
+  \beta_{\mathrm{composite}} = \sum_{i=1}^n \beta_i - \sum_{i < j}\beta_i\beta_j + \cdots
   \label{eq:composite_floor}
 \end{equation}
 with $\beta_{\mathrm{composite}} \ge \max_i \beta_i > 0$.
@@ -607,7 +607,7 @@ The composite partition $D_{\mathrm{composite}} = \bigvee_{i=1}^n D_i$ (the join
 \begin{equation}
   \abs{D_{\mathrm{composite}}} = \sum_{i=1}^n\abs{D_i} - \sum_{i<j}\abs{D_i\cap D_j} + \cdots
 \end{equation}
-Dividing by $\Sigma$ and using $\beta_i = \abs{D_i}/\Sigma$ yields \eqref{eq:composite_floor}.  The lower bound $\beta_{\mathrm{composite}} \ge \max_i\beta_i$ follows from monotonicity of the join: any join is finer than each factor.
+Dividing by $\Sigma$ and using $\beta_i = \abs{D_i}/\Sigma$ yields $\sum_i\beta_i - \sum_{i<j}\abs{D_i}\abs{D_j}/\Sigma^2 + \cdots = \sum_i\beta_i - \sum_{i<j}\beta_i\beta_j + \cdots$, which is \eqref{eq:composite_floor}.  The lower bound $\beta_{\mathrm{composite}} \ge \max_i\beta_i$ follows from monotonicity of the join: any join is finer than each factor.
 \end{proof}
 
 \begin{corollary}[Goal-Independent Coordination]
@@ -673,16 +673,16 @@ where $\omega_i$ is the natural frequency of agent $i$ and $\lambda_i$ is a coup
 
 \begin{theorem}[Critical Coupling Threshold]
 \label{thm:critical}
-For a homogeneous ensemble ($K_{ij} = K$ for all $i\ne j$) with natural frequency distribution $g(\omega)$ having standard deviation $\sigma_\omega$, synchronisation ($R_\mathrm{ens} > 0$) occurs if and only if the coupling strength $K$ exceeds the critical value \citep{kuramoto1984,strogatz2000,acebron2005}:
+For a homogeneous ensemble ($K_{ij} = K$ for all $i\ne j$) with natural frequencies drawn from a Gaussian distribution with standard deviation $\sigma_\omega$, synchronisation ($R_\mathrm{ens} > 0$) occurs if and only if the coupling strength $K$ exceeds the critical value \citep{kuramoto1984,strogatz2000,acebron2005}:
 \begin{equation}
-  K_c = \frac{2\sigma_\omega}{\pi}.
+  K_c = \frac{2}{\pi g(0)} = 2\sigma_\omega\sqrt{\frac{2}{\pi}}.
   \label{eq:critical}
 \end{equation}
 For $K > K_c$, a fraction $r(K)$ of agents mutually synchronise, with $R_\mathrm{ens} \propto (K - K_c)^{1/2}$ near $K_c$.
 \end{theorem}
 
 \begin{proof}
-Standard Kuramoto analysis \citep{kuramoto1984,acebron2005}.  The self-consistency equation $R_\mathrm{ens} = R_\mathrm{ens}\int_{-\pi/2}^{\pi/2}\cos^2(\theta)\,g(KR_\mathrm{ens}\sin\theta)\,d\theta$ has the trivial solution $R_\mathrm{ens} = 0$ for all $K$, and a non-trivial solution for $K > K_c = 2/(\pi g(0)) = 2\sigma_\omega/\pi$ (using $g(0) = 1/\sigma_\omega$ for a Lorentzian distribution).
+Standard Kuramoto analysis \citep{kuramoto1984,acebron2005}.  The self-consistency equation $R_\mathrm{ens} = R_\mathrm{ens}\int_{-\pi/2}^{\pi/2}\cos^2(\theta)\,g(KR_\mathrm{ens}\sin\theta)\,d\theta$ has the trivial solution $R_\mathrm{ens} = 0$ for all $K$, and a non-trivial solution for $K > K_c = 2/(\pi g(0))$.  For a Gaussian distribution $g(\omega) = \exp(-\omega^2/2\sigma_\omega^2)/(\sigma_\omega\sqrt{2\pi})$, one has $g(0) = 1/(\sigma_\omega\sqrt{2\pi})$ and therefore $K_c = 2\sigma_\omega\sqrt{2\pi}/\pi = 2\sigma_\omega\sqrt{2/\pi}$.
 \end{proof}
 
 % -----------------------------------------------------------------------------
@@ -923,13 +923,13 @@ If $D_i$ refines $D_j$, then $\abs{D_i} \ge \abs{D_j}$, so $\beta_i = \abs{D_i}/
 \label{thm:composite_floor}
 For domains $\mathcal{R}_1, \mathcal{R}_2$ with partition densities $\beta_1, \beta_2$ operating over the same measure space $(\Omega,\mu)$, the composite partition $D_1 \vee D_2$ (finest common coarsening) has density
 \begin{equation}
-  \beta_{12} = \beta_1 + \beta_2 - \frac{\beta_1\beta_2}{\Sigma}.
+  \beta_{12} = \beta_1 + \beta_2 - \beta_1\beta_2.
   \label{eq:composite_density}
 \end{equation}
 \end{theorem}
 
 \begin{proof}
-By inclusion-exclusion: $\abs{D_1 \vee D_2} = \abs{D_1} + \abs{D_2} - \abs{D_1 \cap D_2}$.  The intersection partition $D_1 \cap D_2$ consists of cells common to both; its size is $\abs{D_1}\cdot\abs{D_2}/\Sigma$ in expectation (for independent partition structures of the same space).  Hence $\beta_{12} = (\abs{D_1}+\abs{D_2}-\abs{D_1}\abs{D_2}/\Sigma)/\Sigma = \beta_1 + \beta_2 - \beta_1\beta_2/\Sigma$.
+By inclusion-exclusion: $\abs{D_1 \vee D_2} = \abs{D_1} + \abs{D_2} - \abs{D_1 \cap D_2}$.  The intersection partition $D_1 \cap D_2$ consists of cells common to both; its size is $\abs{D_1}\cdot\abs{D_2}/\Sigma$ in expectation (for independent partition structures of the same space).  Hence $\beta_{12} = (\abs{D_1}+\abs{D_2}-\abs{D_1}\abs{D_2}/\Sigma)/\Sigma = \beta_1 + \beta_2 - \beta_1\beta_2$, since $\abs{D_i}/\Sigma = \beta_i$ by definition.
 \end{proof}
 
 \begin{corollary}[Subadditive Floor Growth]

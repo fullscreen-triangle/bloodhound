@@ -1,0 +1,139 @@
+{
+  "V1_floor_theorem": {
+    "n_trials": 10000,
+    "violations": 0,
+    "se_min_observed": 9.690602870414313e-06,
+    "se_mean": 0.034750677055887476,
+    "pass": true
+  },
+  "V2_triple_equivalence": {
+    "n_trials": 1000,
+    "max_error": 1.1102230246251565e-16,
+    "mean_error": 2.8963376835777764e-17,
+    "pass": true
+  },
+  "V3_catalyst_mult": {
+    "n_trials": 1000,
+    "max_error": 0.0,
+    "pass": true
+  },
+  "V4_composition_inflation": {
+    "n_values": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20
+    ],
+    "T_formula": [
+      3,
+      12,
+      48,
+      192,
+      768,
+      3072,
+      12288,
+      49152,
+      196608,
+      786432,
+      3145728,
+      12582912,
+      50331648,
+      201326592,
+      805306368,
+      3221225472,
+      12884901888,
+      51539607552,
+      206158430208,
+      824633720832
+    ],
+    "T_enum": [
+      3.0,
+      12.0,
+      48.0,
+      192.0,
+      768.0,
+      3072.0,
+      12288.0,
+      49152.0,
+      196608.0,
+      786432.0,
+      3145728.0,
+      12582912.0,
+      50331648.0,
+      201326592.0,
+      805306368.0,
+      3221225472.0,
+      12884901888.0,
+      51539607552.0,
+      206158430208.0,
+      824633720832.0
+    ],
+    "max_error": 0.0,
+    "T_56": 3.894222643901121e+33,
+    "T_234_log10": 140.7570992341349,
+    "pass": true
+  },
+  "V5_gradient_flow": {
+    "n_traj": 100,
+    "converged": 100,
+    "mean_final_dist": 6.661338147750939e-16,
+    "max_final_dist": 6.661338147750939e-16,
+    "mean_conv_step": 78.39,
+    "pass": true
+  },
+  "V6_rup": {
+    "n_trials": 1000,
+    "violations": 0,
+    "min_ratio": 1.0006257676816717,
+    "mean_ratio": 1.5303409529637393,
+    "pass": true
+  },
+  "V7_common_cell": {
+    "n_agents": 10,
+    "max_final_dist": 5.12993722910325e-13,
+    "mean_final_dist": 3.6583510859587335e-13,
+    "pass": true
+  },
+  "V8_critical_coupling": {
+    "n_sigma_omega": 20,
+    "distribution": "Gaussian",
+    "Kc_formula": "2*sigma*sqrt(2/pi)",
+    "min_transition_ratio_R3Kc_over_R0p3Kc": 2.553419445674509,
+    "mean_transition_ratio": 9.253069501979144,
+    "Kc_rel_error_mean": 1.0864705882352945,
+    "pass": true
+  },
+  "V9_composite_floor": {
+    "n_trials": 1000,
+    "formula": "beta_12 = beta_1 + beta_2 - beta_1*beta_2",
+    "max_error": 0.00011906726514848698,
+    "mean_error": 3.1813506193500434e-05,
+    "pass": true
+  },
+  "V10_cascade_knapsack": {
+    "n_trials": 100,
+    "mean_ratio": 0.9981739252328444,
+    "min_ratio": 0.9833556543189463,
+    "pass": true
+  },
+  "meta": {
+    "elapsed_seconds": 10.29,
+    "all_pass": true
+  }
+}
