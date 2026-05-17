@@ -1,0 +1,163 @@
+{
+  "V1_sentropy_floor": {
+    "pass": true,
+    "all_in_unit_cube": true,
+    "floor_theorem_holds": true,
+    "min_Se": 0.0625,
+    "mean_Sk": 0.8496960726936895,
+    "elapsed_s": 0.036
+  },
+  "V2_triple_equivalence": {
+    "pass": true,
+    "max_reconstruction_error": 3.3306690738754696e-16,
+    "mean_error": 1.2212453270876722e-17,
+    "elapsed_s": 0.032
+  },
+  "V3_probe_contraction": {
+    "pass": true,
+    "monotone_decrease": true,
+    "final_fraction": 0.0046,
+    "geometric_rate": 0.8995,
+    "n_iterations": 50,
+    "elapsed_s": 0.013
+  },
+  "V4_fixed_point_uniqueness": {
+    "pass": true,
+    "max_pairwise_centroid_distance": 0.020148,
+    "centroids": [
+      [
+        0.7467094361759552,
+        0.29518581486402257,
+        0.4260349993645672
+      ],
+      [
+        0.7486215437872171,
+        0.2947010179738762,
+        0.4277677831011172
+      ],
+      [
+        0.7439508847766197,
+        0.2980161334596356,
+        0.4186410995816638
+      ],
+      [
+        0.7439633424068982,
+        0.3027688494726881,
+        0.4187716445298679
+      ],
+      [
+        0.7390816549876102,
+        0.3083461398225969,
+        0.4164205145546909
+      ]
+    ],
+    "elapsed_s": 0.029
+  },
+  "V5_forcing_recovery": {
+    "pass": true,
+    "n_surviving": 50,
+    "mean_spectral_dominance_after": 0.9826,
+    "all_survive_forcing_condition": true,
+    "mean_dom_before": 0.9847,
+    "elapsed_s": 0.0
+  },
+  "V6_spectral_dp_kernel": {
+    "pass": true,
+    "max_diagonal_error": 6.661e-16,
+    "min_eigenvalue": -1.29e-13,
+    "psd": true,
+    "elapsed_s": 0.044
+  },
+  "V7_raymarch_error": {
+    "pass": true,
+    "mean_error": 0.000656,
+    "max_error": 0.002665,
+    "theoretical_bound": 0.00866,
+    "all_within_bound": true,
+    "delta_s": 0.01,
+    "elapsed_s": 0.015
+  },
+  "V8_trie_ok_retrieval": {
+    "pass": true,
+    "N_values": [
+      1000,
+      10000,
+      100000
+    ],
+    "trie_comparisons": [
+      18,
+      18,
+      18
+    ],
+    "linear_comparisons": [
+      1000,
+      10000,
+      100000
+    ],
+    "expected_trie_comparisons": 18,
+    "trie_comparisons_constant": true,
+    "algo_speedups": [
+      55.6,
+      555.6,
+      5555.6
+    ],
+    "wall_speedups": [
+      11.4,
+      39.4,
+      1241.4
+    ],
+    "trie_times_ms": [
+      0.00114,
+      0.00147,
+      0.00131
+    ],
+    "linear_times_ms": [
+      0.013,
+      0.0579,
+      1.622
+    ],
+    "elapsed_s": 1.289
+  },
+  "V9_generative": {
+    "pass": true,
+    "n_generated": 1000,
+    "purpose_point": [
+      0.03544636210130033,
+      0.3631301702763371,
+      0.06411296324550247
+    ],
+    "forcing_pass_fraction": 1.0,
+    "coord_pass_fraction": 1.0,
+    "coord_threshold_used": 0.0532,
+    "mean_purpose_distance": 0.0147,
+    "mean_spectral_dominance": 0.9867,
+    "elapsed_s": 0.023
+  },
+  "V10_full_pipeline": {
+    "pass": true,
+    "n_initial": 10000,
+    "n_final": 193,
+    "final_fraction": 0.0193,
+    "n_iterations": 8,
+    "final_mean_purpose_dist": 0.0258,
+    "initial_mean_dist": 0.2134,
+    "dist_reduction_factor": 7.2,
+    "mixed_types_in_final": true,
+    "final_type_counts": {
+      "genomic": 104,
+      "molecular": 89,
+      "atmospheric": 0
+    },
+    "purpose_point": [
+      0.7372581627665602,
+      0.3633664140282023,
+      0.4181264637941475
+    ],
+    "elapsed_s": 0.196
+  },
+  "summary": {
+    "all_pass": true,
+    "n_pass": 10,
+    "n_total": 10
+  }
+}
