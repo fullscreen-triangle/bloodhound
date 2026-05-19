@@ -9,8 +9,12 @@ import { useEffect } from "react";
 
 const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-mont" });
 
+// Pages that manage their own chrome (no global Navbar/Footer)
+const BLANK_SCREEN_ROUTES = ["/cytochrome"];
+
 export default function App({ Component, pageProps }) {
   const router = useRouter();
+  const isBlankScreen = BLANK_SCREEN_ROUTES.includes(router.pathname);
 
   // Force dark mode always
   useEffect(() => {
@@ -26,11 +30,11 @@ export default function App({ Component, pageProps }) {
       <main
         className={`${montserrat.variable} font-mont bg-dark w-full min-h-screen h-full`}
       >
-        <Navbar />
+        {!isBlankScreen && <Navbar />}
         <AnimatePresence initial={false} mode="wait">
           <Component key={router.asPath} {...pageProps} />
         </AnimatePresence>
-        <Footer />
+        {!isBlankScreen && <Footer />}
       </main>
     </>
   );

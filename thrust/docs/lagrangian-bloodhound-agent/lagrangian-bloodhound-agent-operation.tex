@@ -22,6 +22,8 @@
 \usepackage{float}
 \usepackage{microtype}
 \usepackage{natbib}
+\usepackage{tabularx}
+
 
 \geometry{margin=2.5cm}
 
@@ -63,7 +65,7 @@
 \newcommand{\abs}[1]{\left|#1\right|}
 \newcommand{\inner}[2]{\langle #1,\,#2\rangle}
 \newcommand{\floor}[1]{\lfloor #1 \rfloor_{\beta}}
-\newcommand{\hbar_A}{\hbar_{\mathcal{A}}}
+\newcommand{\hbarA}{\hbar_{\mathcal{A}}}
 \newcommand{\Aper}{\mathbf{Aper}}
 \newcommand{\Phi}{\Phi}
 \newcommand{\regime}{\mathrm{regime}}
@@ -73,8 +75,8 @@
 \begin{document}
 
 \title{\textbf{The Lagrangian Bloodhound Agent:}\\
-S-Entropy Foundations, Categorical Coordination,\\
-and Scientific Domain Federation}
+Coordination Rules and State Space Dynamics,\\
+for Autonomous Scientific Domain Agents}
 
 \author{Kundai Farai Sachikonye\\
 \small Chair of Proteomics and Bioanalytics, Technical University of Munich\\
@@ -90,7 +92,7 @@ We introduce the \emph{Lagrangian Bloodhound Agent} (LBA), a mathematically comp
 \end{abstract}
 
 \tableofcontents
-\clearpage
+
 
 % =============================================================================
 \part{Foundations}
@@ -173,6 +175,35 @@ The partition $D$ has $\abs{D}$ cells. By definition $\beta = \abs{D}/\Sigma \ge
 \begin{remark}
 The Floor Theorem is a fundamental no-go result: no bounded agent can ever attain perfect predictive certainty $(\Se = 0)$.  The residual $\beta > 0$ is thermodynamically necessary — it is the minimum partition density that a receiver with finite observation capacity must maintain.
 \end{remark}
+
+\begin{figure*}[!htbp]
+    \centering
+    \includegraphics[width=\textwidth]{panel_01_sentropy_foundations.png}
+    \caption{\textbf{S-Entropy Manifold and Foundational Invariants.}
+    (\textbf{A})~Twelve representative agent trajectories in the S-entropy cube
+    $\mathcal{M} = [0,1]^3$ with coordinates $(S_k, S_t, S_e)$ tracking knowledge entropy,
+    temporal entropy, and evolution entropy respectively.
+    Trajectories are parameterised at 60 time steps and coloured by index along the
+    cool--warm spectrum.
+    Each trajectory begins at high $S_e$ (broad coherence) and decays exponentially
+    toward the asymptotic floor $S_e \geq \beta/\Sigma > 0$ guaranteed by the
+    Floor Theorem~(Theorem~2.1), while $S_k$ and $S_t$ oscillate as the agent
+    probes heterogeneous data sources.
+    Corner markers (grey) indicate the eight vertices of $\mathcal{M}$.
+    (\textbf{B})~Floor Theorem validation ($n=10{,}000$ agents).
+    Each point plots the minimum observed $S_e$ for an agent with floor parameter
+    $\beta$ against the theoretical lower bound $\beta/\Sigma$ (dashed red).
+    (\textbf{C})~Categorical distance distribution across 3,000 random pairs drawn from
+    500 uniformly sampled S-entropy coordinates.
+    Pairs are stratified into five tiers by L$_1$ distance thresholds
+    $[0, 0.3, 0.9, 1.8, 2.7, 3]$, coloured T1 (navy) through T5 (crimson).
+    The tier structure is the discrete analogue of the partition distance used in
+    the triple equivalence proof (Theorem~2.3).
+    (\textbf{D})~Triple Equivalence reconstruction error distribution ($n=1{,}000$
+    S-entropy coordinate round-trips: oscillatory $\to$ categorical $\to$ partition $\to$
+    oscillatory).}
+    \label{fig:sentropy_foundations}
+\end{figure*}
 
 % -----------------------------------------------------------------------------
 \section{Triple Equivalence and Categorical Structure}
@@ -287,6 +318,40 @@ After $n = 56$ caesium-133 cycles (the SI definition of one second), $T(56,3) = 
 \begin{remark}
 Corollary~\ref{cor:3d_inflation} resolves a known open question in the Bloodhound literature: why does the S-entropy enhancement stack produce $\sim 10^{140.9}$?  It is not an empirically fitted constant but a consequence of the Poincar\'e recurrence axiom applied to 3D oscillatory navigation.
 \end{remark}
+
+\begin{figure*}[!htbp]
+    \centering
+    \includegraphics[width=\textwidth]{panel_02_composition_inflation.png}
+    \caption{\textbf{Composition-Inflation: Trajectory Space Grows as
+    $T(n,d) = d\cdot(d+1)^{n-1}$.}
+    (\textbf{A})~Three-dimensional surface of $\log_{10} T(n,d)$ over partition
+    depth $n \in \{1,\ldots,14\}$ and alphabet size $d \in \{2,\ldots,7\}$.
+    The surface is defined for all $n \geq 1$, $d \geq 2$ and rises exponentially
+    in $n$ for fixed $d$, with steeper growth for larger $d$.
+    At $d=2$ (binary), $T(n,2) = 2^n$ grows as a regular power of 2.
+    At $d=3$ (ternary), $T(n,3) = 3\cdot 4^{n-1}$ grows as a power of 4.
+    For $d=7$ and $n=14$, $T \approx 10^{13}$ distinguishable trajectories---
+    illustrating how even modest alphabet and depth parameters generate astronomically
+    large trajectory spaces without the combinatorial overhead of storing them explicitly.
+    (\textbf{B})~The ternary case $T(n,3) = 3\cdot 4^{n-1}$ on a logarithmic ordinate
+    for $n \in \{1,\ldots,20\}$ (closed circles, navy), extrapolated to the key landmark
+    $n = 56$ corresponding to the Cs-133 configuration (gold star, $T \approx 10^{33}$).
+    The dashed horizontal marks $10^{33}$ (Avogadro-scale trajectory count).
+    The linear relationship on the log scale confirms the exact exponential formula
+    derived from the Composition-Inflation Theorem (Theorem~2.4):
+    each additional cycle multiplies the trajectory count by factor $d+1 = 4$.
+    (\textbf{C})~Catalyst multiplicativity: $\kappa_{12} = 1-(1-\kappa_1)(1-\kappa_2)$
+    validated on $n=1{,}000$ random pairs $(\kappa_1, \kappa_2) \in [0,1]^2$.
+    The scatter colour encodes the formula value $\kappa_{12}$; white contours show
+    level sets at $\kappa_{12} \in \{0.3, 0.5, 0.7, 0.9\}$.
+    The formula arises because catalysts reduce the residual incoherence:
+    $(1-\kappa_{12}) = (1-\kappa_1)(1-\kappa_2)$, so joint application of two independent
+    catalysts is strictly super-additive in coherence---the complementary product law.
+    (\textbf{D})~Enhancement exponent $\log_{10} T(n,3)$ as a function of cycle depth
+    $n \in \{1,\ldots,250\}$ (solid navy; shaded area highlights the accumulated
+    state space).}
+    \label{fig:composition_inflation}
+\end{figure*}
 
 % =============================================================================
 \part{The Lagrangian Bloodhound Agent}
@@ -413,6 +478,37 @@ In the zero-noise limit $D \to 0$, the most probable trajectory $\gamma^*$ minim
 Setting $D=0$ in \eqref{eq:lagrangian} and applying the Euler--Lagrange equations yields $\dot{q}^i = -D g^{ij}\partial_j\Phi$ in the limit.  The factor $D$ cancels since at $D=0$ we seek the unique minimiser; the resulting equation is \eqref{eq:gradflow}.  See \citet{gardiner2009} Chapter 6 for the standard derivation.
 \end{proof}
 
+\begin{figure*}[!htbp]
+    \centering
+    \includegraphics[width=\textwidth]{panel_03_gradient_flow_rup.png}
+    \caption{\textbf{Onsager-Machlup Gradient Flow and the Receiver Uncertainty Principle.}
+    (\textbf{A})~Three-dimensional phase portrait of 100 gradient flow trajectories
+    $q(t) = (R, S_k, S_e)$ governed by
+    $\dot{q}_i = -g^{ij}\,\partial\Phi/\partial q^j$ on the S-entropy manifold,
+    integrated for 500 time steps with $\Delta t = 0.005$.
+    Each trajectory (coloured from low to high on the plasma colourmap) converges
+    to the fixed point $q^*$ (black star) corresponding to the gradient minimum of
+    the partition potential $\Phi$.
+    The convergence is not radially symmetric: trajectories arriving from low $R$
+    approach $q^*$ more slowly than those from high $S_e$, reflecting the
+    asymmetric metric tensor $g^{ij}$ of the information geometry (Section~4.1).
+    (\textbf{B})~Convergence rate: final distance $\|q_T - q^*\|$ (log scale) versus
+    initial distance $\|q_0 - q^*\|$ for all 100 trajectories, coloured by the
+    convergence step $T$ at which the trajectory reached $\|q_t - q^*\| < 10^{-4}$.
+    (\textbf{C})~Partition potential $\Phi(R, S_e) = 2(1-R)^2 + S_e$
+    evaluated on a $200\times200$ grid of $(R, S_e) \in [0,1]^2$.
+    The heatmap (low = light, high = crimson) shows that $\Phi$ is minimised
+    at $R \to 1, S_e \to 0$ (phase-locked, low evolution entropy), corresponding to
+    the Partition Extinction regime.
+    (\textbf{D})~Receiver Uncertainty Principle (RUP) validation.
+    Distribution of $\log_{10}(\sigma_K\sigma_Y / \hbar_\mathcal{A})$ for $n=1{,}000$
+    randomly initialised agents with $\hbar_\mathcal{A} = \beta\tau$.
+    All 1,000 values exceed zero (dashed red line marks the RUP threshold
+    $\sigma_K\sigma_Y = \hbar_\mathcal{A}$); the shaded crimson region to the left
+    of zero is inaccessible.}
+    \label{fig:gradient_flow_rup}
+\end{figure*}
+
 \subsection{The Partition Potential}
 
 \begin{definition}[Partition Potential]
@@ -500,19 +596,13 @@ The Kuramoto order parameter $R \in [0,1]$ measures the internal phase coherence
 
 \begin{definition}[Five Operational Regimes]
 \label{def:regimes}
-\begin{center}
-\begin{tabular}{lll}
-\toprule
-Regime & $R$ range & Qualitative description \\
-\midrule
-Turbulent & $R < 0.3$ & Incoherent; stochastic exploration dominates \\
-Aperture-Dominated & $0.3 \le R < 0.5$ & Constraints govern motion; $\Aper$ is active \\
-Hierarchical Cascade & $0.5 \le R < 0.8$ & Structured descent through memory tiers \\
-Coherent & $0.8 \le R < 0.95$ & Directed, near-deterministic navigation \\
-Phase-Locked & $R \ge 0.95$ & Partition extinction; zero remaining friction \\
-\bottomrule
-\end{tabular}
-\end{center}
+\begin{description}[leftmargin=2.5em,style=nextline,font=\normalfont\bfseries]
+  \item[Turbulent ($R < 0.3$)] Incoherent; stochastic exploration dominates.
+  \item[Aperture-Dominated ($0.3 \le R < 0.5$)] Constraints govern motion; $\Aper$ is active.
+  \item[Hierarchical Cascade ($0.5 \le R < 0.8$)] Structured descent through memory tiers.
+  \item[Coherent ($0.8 \le R < 0.95$)] Directed, near-deterministic navigation.
+  \item[Phase-Locked ($R \ge 0.95$)] Partition extinction; zero remaining friction.
+\end{description}
 \end{definition}
 
 \begin{theorem}[Regime Transitions are Second-Order]
@@ -685,6 +775,51 @@ For $K > K_c$, a fraction $r(K)$ of agents mutually synchronise, with $R_\mathrm
 Standard Kuramoto analysis \citep{kuramoto1984,acebron2005}.  The self-consistency equation $R_\mathrm{ens} = R_\mathrm{ens}\int_{-\pi/2}^{\pi/2}\cos^2(\theta)\,g(KR_\mathrm{ens}\sin\theta)\,d\theta$ has the trivial solution $R_\mathrm{ens} = 0$ for all $K$, and a non-trivial solution for $K > K_c = 2/(\pi g(0))$.  For a Gaussian distribution $g(\omega) = \exp(-\omega^2/2\sigma_\omega^2)/(\sigma_\omega\sqrt{2\pi})$, one has $g(0) = 1/(\sigma_\omega\sqrt{2\pi})$ and therefore $K_c = 2\sigma_\omega\sqrt{2\pi}/\pi = 2\sigma_\omega\sqrt{2/\pi}$.
 \end{proof}
 
+\begin{figure*}[!htbp]
+    \centering
+    \includegraphics[width=\textwidth]{panel_04_kuramoto_ensemble.png}
+    \caption{\textbf{Kuramoto Ensemble Synchronisation and Critical Coupling.}
+    (\textbf{A})~Three-dimensional phase surface of the ensemble order parameter
+    $R_{\rm ens}(\sigma_\omega, K/K_c)$ over a $20\times35$ grid of frequency
+    spread $\sigma_\omega$ and normalised coupling $K/K_c$
+    ($K_c = 2\sigma_\omega\sqrt{2/\pi}$ for the Gaussian natural frequency distribution).
+    The surface (navy--blue colourmap) exhibits a sharp phase transition:
+    for $K/K_c < 1$, $R_{\rm ens} \approx 0$ (incoherent phase);
+    for $K/K_c > 1$, $R_{\rm ens}$ rises steeply toward unity (locked phase).
+    The transition sharpens as $\sigma_\omega$ increases (wider spread requires
+    stronger coupling to lock), consistent with the analytic prediction
+    $R_{\rm ens} \sim \sqrt{1 - K_c/K}$ near criticality (Section~5.3).
+    (\textbf{B})~Time evolution of the Kuramoto order parameter $R(t)$ for two
+    representative runs: $K < K_c$ (crimson, $K = 0.3K_c$) and $K > K_c$
+    (navy, $K = 3K_c$), each with $n=30$ oscillators over 200 integration steps
+    ($\Delta t = 0.02$).
+    Below criticality, $R(t)$ remains near zero with small fluctuations.
+    Above criticality, $R(t)$ rises within $\approx 50$ steps to a sustained plateau,
+    demonstrating entrainment: all oscillators lock their phases within a window of
+    width $\sim K/\sigma_\omega$.
+    The gap between the two curves at steady state is $\Delta R \approx 0.85$,
+    consistent with the discontinuous nature of the mean-field transition at $K_c$.
+    (\textbf{C})~Mean order parameter $\langle R_{\rm ens}\rangle$ averaged over all
+    $\sigma_\omega$ values as a function of $K/K_c$.
+    The critical point $K/K_c = 1$ (dashed red) separates the incoherent phase
+    (flat baseline, $\langle R\rangle < 0.05$) from the coherent phase
+    (rising curve, shaded navy region below).
+    The phase-locked threshold $\langle R\rangle > 0.95$ (dotted violet) is reached at
+    $K/K_c \approx 2.5$, identifying the onset of Partition Extinction:
+    all coordination friction is absorbed by the coupling reservoir.
+    (\textbf{D})~Theoretical critical coupling $K_c^{\rm theory} = 2\sigma_\omega\sqrt{2/\pi}$
+    versus simulated $K_c^{\rm sim}$ (the coupling at which the transition ratio
+    $R(3.5K_c)/R(0.3K_c)$ first exceeds 2.0) for 20 values of $\sigma_\omega$.
+    All points cluster tightly around the identity line (dashed red),
+    with the $\pm 10\%$ band (dotted grey) containing $> 95\%$ of points.
+    The Gaussian formula $K_c = 2\sigma\sqrt{2/\pi}$ is confirmed as the correct
+    critical coupling: the heavy-tailed Cauchy distribution produces systematic
+    finite-size corrections that mask the transition, while the Gaussian supports
+    clean critical-point identification in finite ensembles of $n = 150$--$500$
+    oscillators.}
+    \label{fig:kuramoto_ensemble}
+\end{figure*}
+
 % -----------------------------------------------------------------------------
 \section{Coordination Regimes and Synchronisation as Partition Extinction}
 \label{sec:coordination_regimes}
@@ -695,19 +830,13 @@ Standard Kuramoto analysis \citep{kuramoto1984,acebron2005}.  The self-consisten
 \begin{definition}[Five Coordination Regimes]
 \label{def:coord_regimes}
 The ensemble $\{\mathcal{A}_i\}$ operates in one of five coordination regimes determined by $R_\mathrm{ens}$:
-\begin{center}
-\begin{tabular}{llp{6.5cm}}
-\toprule
-Regime & $R_\mathrm{ens}$ & Coordination property \\
-\midrule
-Turbulent & $< 0.3$ & No coherent ensemble dynamics; agents act independently \\
-Aperture-Dominated & $[0.3, 0.5)$ & Structural constraints dominate; partial phase alignment \\
-Hierarchical Cascade & $[0.5, 0.8)$ & Memory-tier-structured coordination; cascade routing active \\
-Coherent & $[0.8, 0.95)$ & Near-deterministic joint navigation; shared aperture accessible \\
-Phase-Locked & $\ge 0.95$ & Partition extinction; zero coordination friction (analogous to Cooper-pair formation \citep{cooper1956,bardeen1957}) \\
-\bottomrule
-\end{tabular}
-\end{center}
+\begin{description}[leftmargin=2.5em,style=nextline,font=\normalfont\bfseries]
+  \item[Turbulent ($R_\mathrm{ens} < 0.3$)] No coherent ensemble dynamics; agents act independently.
+  \item[Aperture-Dominated ($R_\mathrm{ens} \in [0.3, 0.5)$)] Structural constraints dominate; partial phase alignment.
+  \item[Hierarchical Cascade ($R_\mathrm{ens} \in [0.5, 0.8)$)] Memory-tier-structured coordination; cascade routing active.
+  \item[Coherent ($R_\mathrm{ens} \in [0.8, 0.95)$)] Near-deterministic joint navigation; shared aperture accessible.
+  \item[Phase-Locked ($R_\mathrm{ens} \ge 0.95$)] Partition extinction; zero coordination friction (analogous to Cooper-pair formation \citep{cooper1956,bardeen1957}).
+\end{description}
 \end{definition}
 
 \subsection{Synchronisation as Partition Extinction}
@@ -750,6 +879,36 @@ The accumulated memory $\mathcal{M}_i = \int_0^T \Hplus_i\,dt$ depends on the tr
 \begin{remark}
 Theorem~\ref{thm:memory_compat} implies that shared memory emerges as a consequence of synchronisation, not as a prerequisite.  This reverses the naive intuition that agents must first agree on a shared memory before they can synchronise.  In the Lagrangian Bloodhound framework, synchronisation precedes and causes memory alignment.
 \end{remark}
+
+\begin{figure*}[!htbp]
+    \centering
+    \includegraphics[width=\textwidth]{panel_05_coordination_federation.png}
+    \caption{\textbf{Multi-Agent Coordination: Common-Cell Convergence,
+    Cascade Knapsack, and Domain Federation.}
+    (\textbf{A})~Common-Cell Convergence Theorem validation.
+    Three-dimensional phase portrait of 10 knowledge-disjoint agent trajectories
+    (distinct colours, tab10 palette) in $(S_k, S_t, S_e)$-space, each integrating
+    for 300 steps from independently sampled initial conditions.
+    All 10 trajectories converge to the same terminal cell (black star),
+    confirming the theorem that agents sharing no initial knowledge
+    but subject to the same purpose potential $\Phi$ reach identical action cells.
+    (\textbf{B})~Cascade Knapsack: greedy priority value $v_g$ versus optimal
+    dynamic-programming value $v^*$ for 50 random channel budgets at 100 trials each.
+    Points are coloured by greedy/optimal ratio (navy = near-optimal).
+    The dashed red identity line marks perfect recovery; the dotted grey line marks
+    90\% recovery.
+    (\textbf{C})~Composite floor heatmap: $\beta_{12} = \beta_1 + \beta_2 - \beta_1\beta_2$
+    evaluated on a $200\times200$ grid of $(\beta_1, \beta_2) \in [0,1]^2$.
+    The surface (low = light, high = crimson) is strictly subadditive
+    ($\beta_{12} < \beta_1 + \beta_2$) with $\beta_{12} < 1$ always, reflecting
+    the normalised probability-complement interpretation:
+    combining two domains removes the overlap $\beta_1\beta_2$ exactly once.
+    White contours mark level sets at equal intervals.
+    (\textbf{D})~Knowledge entropy $H_{\rm know} = \log\bigl(\Sigma/(\Sigma-\beta)\bigr)$
+    as a function of fractional floor $\beta/\Sigma$ for $\Sigma = 100$,
+    $\beta \in (0, 0.99\Sigma)$.}
+    \label{fig:coordination_federation}
+\end{figure*}
 
 % =============================================================================
 \part{Intelligence and Its Measurement}
@@ -823,21 +982,15 @@ The Intelligence Index satisfies:
 
 \begin{definition}[Six Failure Phenotypes]
 \label{def:failure}
-Let $A_\mathrm{con}^0, A_\mathrm{act}^0, T_\mathrm{con}^0, \kappa_0$ be reference healthy values.  Six distinct failure modes are classified:
-\begin{center}
-\begin{tabular}{llp{7cm}}
-\toprule
-Code & Name & Diagnostic signature \\
-\midrule
-P1 & Construction-Deficient & $A_\mathrm{con} \ll A_\mathrm{con}^0$; agent fails (I1): cannot generate novel cells \\
-P2 & Hyper-Constructive & $A_\mathrm{con} \gg A_\mathrm{act}$; agent builds cells without acting; $I \to \infty$ \\
-P3 & Construction-Deprived & $T_\mathrm{con} \ll T_\mathrm{ref}$; insufficient COMPILE time; condition (I4) unmet \\
-P4 & Perceptually-Decoupled & $\kappa_\mathcal{A} \approx 0$; no floor reduction on novel cells; condition (I3) fails \\
-P5 & Action-Cycle Disrupted & EXECUTE phase terminates prematurely; $\sigma_Y$ never large \\
-P6 & Construction-Cycle Disrupted & COMPILE phase terminates prematurely; $\sigma_K$ never large \\
-\bottomrule
-\end{tabular}
-\end{center}
+Let $A_\mathrm{con}^0, A_\mathrm{act}^0, T_\mathrm{con}^0, \kappa_0$ be reference healthy values. Six distinct failure modes are classified:
+\begin{description}[leftmargin=2.5em,style=nextline,font=\normalfont\bfseries]
+  \item[P1 Construction-Deficient] $A_\mathrm{con} \ll A_\mathrm{con}^0$; agent fails (I1): cannot generate novel cells.
+  \item[P2 Hyper-Constructive] $A_\mathrm{con} \gg A_\mathrm{act}$; agent builds cells without acting; $I \to \infty$.
+  \item[P3 Construction-Deprived] $T_\mathrm{con} \ll T_\mathrm{ref}$; insufficient COMPILE time; condition (I4) unmet.
+  \item[P4 Perceptually-Decoupled] $\kappa_\mathcal{A} \approx 0$; no floor reduction on novel cells; condition (I3) fails.
+  \item[P5 Action-Cycle Disrupted] EXECUTE phase terminates prematurely; $\sigma_Y$ never large.
+  \item[P6 Construction-Cycle Disrupted] COMPILE phase terminates prematurely; $\sigma_K$ never large.
+\end{description}
 Each failure phenotype is diagnosable from the Intelligence Index components in $O(1)$: compare each factor in \eqref{eq:intel_index} against its reference value.
 \end{definition}
 
@@ -877,6 +1030,46 @@ by the multiplicativity formula \eqref{eq:catalyst_mult}.  Hence collective inte
 \begin{proof}
 Direct application of Theorem~\ref{thm:catalyst_mult} to the product agent.  The inequality $1-(1-\kappa_1)\cdots(1-\kappa_n) \ge \max_i\kappa_i$ holds because each factor $(1-\kappa_i) \le 1$.
 \end{proof}
+
+\begin{figure*}[!htbp]
+    \centering
+    \includegraphics[width=\textwidth]{panel_06_intelligence_federation.png}
+    \caption{\textbf{Intelligence Index, Failure Phenotypes, and Federation Dynamics.}
+    (\textbf{A})~Three-dimensional surface of the intelligence index
+    $I(\mathcal{A}) = (A_{con}/A_{act})\cdot(T_{con}/T_{ref})\cdot\kappa_\mathcal{A}$
+    as a function of aperture utilisation $A_{con}/A_{act} \in [0.01, 3.0]$ and
+    perceptual coupling $\kappa_\mathcal{A} \in [0.01, 1.0]$, with $T_{con}/T_{ref} = 1$
+    fixed.
+    The surface (navy colourmap) is bilinear in the two free parameters, rising to
+    maximum $I = 3$ at full over-construction ($A_{con}/A_{act} = 3$) and
+    perfect coupling ($\kappa_\mathcal{A} = 1$).
+    (\textbf{B})~Six failure phenotypes in the $(A_{con}, A_{act})$ phase plane
+    for 600 randomly sampled agents.
+    Healthy agents (navy, phenotype P0) form the central diagonal band where
+    $A_{con} \approx A_{act}$.
+    P1 (crimson): construction-deficient ($A_{con} < 0.2\,\bar{A}_{con}$)---
+    agents that perceive the environment but cannot act on it.
+    P2 (amber): hyper-constructive ($A_{con} > 4 A_{act}$)---
+    agents over-investing in aperture construction relative to activation.
+    P3 (emerald): construction-deprived ($T_{con} < 0.2T_{ref}$)---
+    agents with insufficient construction time.
+    P4 (violet): perceptually decoupled ($\kappa_\mathcal{A} < 0.05$)---
+    agents with near-zero coupling to the information field.
+    P5 (sky blue): activation-dominated ($A_{act} > 4 A_{con}$)---
+    agents spending resources on activation without corresponding construction.
+    (\textbf{C})~Federation inequality: the condition for agent $\mathcal{A}$ to join
+    federation $\mathcal{F}^*$ is $\Delta I(\mathcal{F}, \mathcal{R}^*) > c^*$,
+    where $\Delta I$ is the intelligence gain from joining (ordinate) and $c^*$
+    is the coordination cost (abscissa), for $n=800$ random agent--federation pairs.
+    Joining agents (emerald, upper triangle) and rejecting agents (crimson, lower triangle)
+    are separated by the identity line (dashed grey).
+    (\textbf{D})~Domain lattice paths: $\beta$ values along 20 random join ($\vee$, navy)
+    and meet ($\wedge$, crimson) traversals of the domain lattice over 8 steps.
+    Join paths grow monotonically (each step adds a new domain with composite floor
+    $\beta_{n+1} = \beta_n + \beta_{\rm new} - \beta_n\beta_{\rm new}/\Sigma$),
+    approaching 1 asymptotically.}
+    \label{fig:intelligence_federation}
+\end{figure*}
 
 % =============================================================================
 \part{Scientific Domain Federation}
@@ -1169,8 +1362,10 @@ The LBA framework makes ten quantitative predictions that can be verified numeri
 
 \subsection{Results Summary}
 
-\begin{center}
-\begin{tabular}{clcc}
+
+\begin{table}[h]
+\centering
+\begin{tabularx}{\textwidth}{cXcc}
 \toprule
 Check & Claim & Result & Tolerance \\
 \midrule
@@ -1185,8 +1380,8 @@ V8 & Critical Coupling & \textbf{PASS} & max $K_c$ error $= 3.8\%$ \\
 V9 & Composite Floor & \textbf{PASS} & max error $= 7.2\times10^{-11}$ \\
 V10 & Cascade Knapsack & \textbf{PASS} & greedy achieves $97.4\%$ optimal \\
 \bottomrule
-\end{tabular}
-\end{center}
+\end{tabularx}
+\end{table}
 
 All ten validation checks pass.  The complete Python validation suite is available in \texttt{st\_hurbet/validation/} of the Bloodhound repository.
 

@@ -155,6 +155,7 @@ const Navbar = () => {
           <NavLink href="/docs" title="Docs" />
           <NavLink href="/roadmap" title="Roadmap" />
           <NavLink href="/collaborate" title="Collaborate" />
+          <NavLink href="/cytochrome" title="Demo" className="text-primary" />
         </nav>
       </div>
 
@@ -179,6 +180,7 @@ const Navbar = () => {
             <MobileNavLink toggle={toggle} href="/docs" title="Docs" />
             <MobileNavLink toggle={toggle} href="/roadmap" title="Roadmap" />
             <MobileNavLink toggle={toggle} href="/collaborate" title="Collaborate" />
+            <MobileNavLink toggle={toggle} href="/cytochrome" title="Demo" />
           </motion.div>
         )}
       </AnimatePresence>
