@@ -432,3 +432,5 @@ mock_data/
 .local/
 local_config/
 dev_cache/
+# Purpose CLI local index cache (Tool B) — not source
+.purpose/

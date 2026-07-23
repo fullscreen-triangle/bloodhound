@@ -10,7 +10,7 @@ import { useEffect } from "react";
 const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-mont" });
 
 // Pages that manage their own chrome (no global Navbar/Footer)
-const BLANK_SCREEN_ROUTES = ["/cytochrome"];
+const BLANK_SCREEN_ROUTES = ["/", "/cytochrome"];
 
 export default function App({ Component, pageProps }) {
   const router = useRouter();
