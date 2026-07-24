@@ -121,8 +121,8 @@ fn cmd_add(path: PathBuf, name: Option<String>, remote: Option<String>) -> Resul
     fed.save()?;
 
     println!(
-        "Added {name}: χ = {:.3} over {} blocks (m = 1).",
-        character.chi, character.blocks
+        "Added {name}: χ = {:.3} (core {} of {} blocks; {} fragment(s)) (m = 1).",
+        character.chi, character.core_blocks, character.blocks, character.fragments
     );
     print_salient(&character);
     Ok(())
@@ -166,12 +166,12 @@ fn cmd_sense(repo: String, question: Option<String>) -> Result<()> {
             let index = Index::load(&record.path, &repo)?;
             let character = chi::compute(&index);
             println!(
-                "{repo}: sense/goal — χ = {:.3} over {} blocks.",
-                character.chi, character.blocks
+                "{repo}: sense/goal — χ = {:.3} (core {} of {} blocks; {} fragment(s)).",
+                character.chi, character.core_blocks, character.blocks, character.fragments
             );
             print_salient(&character);
             println!(
-                "\nCheapest conceptual split (χ severs this region of {} block(s)):",
+                "\nCheapest conceptual split of the core (χ severs this region of {} block(s)):",
                 character.cut_side.len()
             );
             for b in character.cut_side.iter().take(12) {

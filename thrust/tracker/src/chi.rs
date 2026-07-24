@@ -37,12 +37,20 @@ pub const BETA: f64 = 1.0;
 /// "sense" (reported *by search*, this struct only names where to look).
 #[derive(Debug, Clone)]
 pub struct Character {
-    /// χ — the minimum cut-residual. Positive and conserved (T1).
+    /// χ — the minimum cut-residual **of the largest connected component**.
+    /// Positive and conserved (T1). See `fragments` for why the component matters.
     pub chi: f64,
-    /// Number of file/section blocks (graph vertices).
+    /// Number of file/section blocks (graph vertices) across the whole repo.
     pub blocks: usize,
-    /// The smaller side of the minimum cut — the block set most cheaply severed.
-    /// Non-local: this is a *region*, never guaranteed to be a singleton.
+    /// Number of connected components. The floor theorem (T0) guarantees χ > 0 only
+    /// for a *connected* graph (the Presence axiom); a repo's index is naturally
+    /// fragmented (docs vs. code), so χ is the invariant of the principal body — the
+    /// largest component — and this counts the islands as a structural fact.
+    pub fragments: usize,
+    /// Size (in blocks) of the largest connected component χ was computed over.
+    pub core_blocks: usize,
+    /// The smaller side of the minimum cut within the core — the block set most
+    /// cheaply severed. Non-local: a *region*, never guaranteed to be a singleton.
     pub cut_side: Vec<String>,
     /// Highest-degree blocks — the load-bearing files of the repo's structure.
     /// This is the salient surface a `sense` report narrates.
@@ -50,9 +58,24 @@ pub struct Character {
 }
 
 /// Compute χ and its salient surface from a repo's `purpose` self-graph.
+///
+/// χ is the minimum cut-residual of the **largest connected component** (the repo's
+/// principal body of work). This is the theory-faithful choice: the floor theorem
+/// guarantees χ ≥ β only under connectedness (the Presence axiom), and a repo's raw
+/// index graph is naturally disconnected. We report the component count as
+/// `fragments` so fragmentation is surfaced, never hidden.
 pub fn compute(index: &Index) -> Character {
     let graph = build_graph(index);
-    graph.character()
+    let fragments = graph.components();
+    let salient = graph.top_by_degree(8);
+    let core = graph.largest_component_subgraph();
+    let mut character = core.character();
+    // Overwrite whole-repo-level facts the sub-graph cannot know.
+    character.blocks = graph.labels.len();
+    character.fragments = fragments.len();
+    character.core_blocks = core.labels.len();
+    character.salient = salient;
+    character
 }
 
 /// A weighted, undirected graph over file/section blocks.
@@ -63,17 +86,20 @@ struct BlockGraph {
 }
 
 impl BlockGraph {
+    /// Character of THIS graph, assumed connected (caller passes a component).
     fn character(&self) -> Character {
         let n = self.labels.len();
         if n < 2 {
-            // A repo with fewer than two blocks has no nontrivial partition; by the
-            // floor theorem its sense is still positive but undefined as a cut —
+            // A component with fewer than two blocks has no nontrivial partition; by
+            // the floor theorem its sense is still positive but undefined as a cut —
             // report β as the floor and the whole thing as salient.
             return Character {
                 chi: BETA,
                 blocks: n,
+                fragments: 1,
+                core_blocks: n,
                 cut_side: self.labels.clone(),
-                salient: self.degrees(),
+                salient: self.top_by_degree(8),
             };
         }
         let (chi, side) = self.stoer_wagner_min_cut();
@@ -81,13 +107,53 @@ impl BlockGraph {
         Character {
             chi,
             blocks: n,
+            fragments: 1,
+            core_blocks: n,
             cut_side,
             salient: self.top_by_degree(8),
         }
     }
 
-    fn degrees(&self) -> Vec<(String, f64)> {
-        self.top_by_degree(self.labels.len())
+    /// Connected components as lists of vertex indices, largest first.
+    fn components(&self) -> Vec<Vec<usize>> {
+        let n = self.labels.len();
+        let mut seen = vec![false; n];
+        let mut comps: Vec<Vec<usize>> = Vec::new();
+        for start in 0..n {
+            if seen[start] {
+                continue;
+            }
+            let mut stack = vec![start];
+            seen[start] = true;
+            let mut comp = Vec::new();
+            while let Some(v) = stack.pop() {
+                comp.push(v);
+                for u in 0..n {
+                    if !seen[u] && self.w[v][u] > 0.0 {
+                        seen[u] = true;
+                        stack.push(u);
+                    }
+                }
+            }
+            comps.push(comp);
+        }
+        comps.sort_by(|a, b| b.len().cmp(&a.len()));
+        comps
+    }
+
+    /// The induced subgraph on the largest connected component.
+    fn largest_component_subgraph(&self) -> BlockGraph {
+        let comps = self.components();
+        let core = comps.first().cloned().unwrap_or_default();
+        let labels: Vec<String> = core.iter().map(|&i| self.labels[i].clone()).collect();
+        let k = core.len();
+        let mut w = vec![vec![0.0f64; k]; k];
+        for (ni, &oi) in core.iter().enumerate() {
+            for (nj, &oj) in core.iter().enumerate() {
+                w[ni][nj] = self.w[oi][oj];
+            }
+        }
+        BlockGraph { labels, w }
     }
 
     fn top_by_degree(&self, k: usize) -> Vec<(String, f64)> {
