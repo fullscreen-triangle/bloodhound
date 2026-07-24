@@ -1,0 +1,31 @@
+[package]
+name = "tracker"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.70"
+authors = ["Kundai Farai Sachikonye <kundai.sachikonye@wzw.tum.de>"]
+description = "Repo-federation tracker: tracks a group of repos and their conserved sense/goal (chi), composing the `purpose` search CLI and the network-yield execution CLI."
+license = "MIT"
+readme = "README.md"
+
+# Standalone tool, installable per-project like `purpose`.
+# Intentionally NOT a member of the bloodhound-vm workspace at the repo root
+# (that root Cargo.toml excludes this path).
+
+# Declaring an empty workspace makes this crate its own workspace root, fully
+# independent of the (unrelated) bloodhound-vm workspace above it.
+[workspace]
+
+[[bin]]
+name = "tracker"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4.5", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+anyhow = "1.0"
+thiserror = "1.0"
+
+[dev-dependencies]
+tempfile = "3"
