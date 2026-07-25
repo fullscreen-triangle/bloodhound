@@ -35,6 +35,13 @@ const Footer = () => {
               </nav>
             </div>
             <div>
+              <div className="text-xs font-mono text-muted uppercase tracking-widest mb-3">Tools</div>
+              <nav className="flex flex-col gap-2">
+                <Link href="/repo-lens" className="text-primary hover:text-primary/80 transition-colors">Repo Lens</Link>
+                <Link href="/cytochrome" className="text-primary hover:text-primary/80 transition-colors">CYP450 Engine</Link>
+              </nav>
+            </div>
+            <div>
               <div className="text-xs font-mono text-muted uppercase tracking-widest mb-3">Connect</div>
               <nav className="flex flex-col gap-2">
                 <Link href="/collaborate" className="hover:text-primary transition-colors">Collaborate</Link>

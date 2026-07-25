@@ -29,8 +29,9 @@ const NAV_SECTIONS = [
     ],
   },
   {
-    label: "Demo",
+    label: "Tools",
     links: [
+      { href: "/repo-lens",    title: "Repo Lens", highlight: true },
       { href: "/cytochrome",   title: "CYP450 Research Engine", highlight: true },
     ],
   },
