@@ -414,7 +414,7 @@ yarn-error.log*
 *.crt
 *.cer
 *.der
-
+.env.local
 # === Large Data Files ===
 # Prevent accidentally committing large files
 *.zip
