@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import * as d3 from "d3";
-import { repoName, githubFileUrl } from "@/lib/repo-lens/model";
+import { repoName, fileUrl } from "@/lib/repo-lens/model";
 
 /**
  * The sense surface — a treemap of the highest-weight files across the federation.
@@ -55,8 +55,11 @@ export default function SalientTreemap({ federation }) {
               transform={`translate(${leaf.x0},${leaf.y0})`}
               onMouseEnter={() => setHover(i)}
               onMouseLeave={() => setHover(null)}
-              onClick={() => window.open(githubFileUrl(d.repoRef, d.name), "_blank", "noopener")}
-              style={{ cursor: "pointer" }}
+              onClick={() => {
+                const href = fileUrl(d.repoRef, d.name);
+                if (href) window.open(href, "_blank", "noopener");
+              }}
+              style={{ cursor: fileUrl(d.repoRef, d.name) ? "pointer" : "default" }}
             >
               <rect
                 width={w}

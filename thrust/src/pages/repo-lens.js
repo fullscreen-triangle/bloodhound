@@ -6,7 +6,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { analyseFederation } from "@/lib/repo-lens/analyse";
 import { run as runStHurbert } from "@/lib/repo-lens/sthurbert";
 import { generateStHurbert } from "@/lib/repo-lens/ai";
-import { repoName, githubFileUrl } from "@/lib/repo-lens/model";
+import { repoName, repoShortName, fileUrl } from "@/lib/repo-lens/model";
 
 import ChiBars from "@/components/repo-lens/ChiBars";
 import SalientTreemap from "@/components/repo-lens/SalientTreemap";
@@ -85,8 +85,8 @@ function renderBlockBody(b, federation) {
     return (
       <ul className="space-y-1">
         {rows.slice(0, 60).map((row, i) => {
-          const repo = federation?.repos.find((r) => repoName(r) === row.repo || r.snapshot.ref.name === row.repo);
-          const href = repo ? githubFileUrl(repo, row.file, row.line) : null;
+          const repo = federation?.repos.find((r) => repoName(r) === row.repo || repoShortName(r) === row.repo);
+          const href = repo ? fileUrl(repo, row.file, row.line) : null;
           const inner = (
             <span className="font-mono text-xs">
               <span className="text-muted">{row.repo ? `${row.repo} ` : ""}</span>

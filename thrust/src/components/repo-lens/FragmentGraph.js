@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState, useEffect } from "react";
 import * as d3 from "d3";
-import { repoName } from "@/lib/repo-lens/model";
+import { repoName, repoShortName } from "@/lib/repo-lens/model";
 
 /**
  * The federation as a constellation: one node per repo, radius ∝ χ (conserved
@@ -86,9 +86,9 @@ export default function FragmentGraph({ federation, onSelectRepo }) {
                 className="fill-muted"
                 style={{ fontSize: 9, fontFamily: "monospace", pointerEvents: "none" }}
               >
-                {n.repo.snapshot.ref.name.length > 16
-                  ? n.repo.snapshot.ref.name.slice(0, 15) + "…"
-                  : n.repo.snapshot.ref.name}
+                {repoShortName(n.repo).length > 16
+                  ? repoShortName(n.repo).slice(0, 15) + "…"
+                  : repoShortName(n.repo)}
               </text>
             </g>
           );
