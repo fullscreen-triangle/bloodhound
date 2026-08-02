@@ -63,6 +63,44 @@ const ChartCard = ({ title, children }) => (
   </div>
 );
 
+/**
+ * The local-engine connection pill. Connection-refused is a first-class, expected
+ * state (the engine is an optional download), so "disconnected" reads as guidance,
+ * not an error toast.
+ */
+function EngineStatusPill({ status, info, onRetry, retrying }) {
+  const map = {
+    idle: { dot: "bg-muted", text: "checking for a local engine…", tone: "text-muted" },
+    connecting: { dot: "bg-accent animate-pulse", text: "connecting…", tone: "text-accent" },
+    connected: {
+      dot: "bg-primary",
+      text: info ? `engine connected @ ${info.base.replace(/^https?:\/\//, "")} (v${info.version})` : "engine connected",
+      tone: "text-primary",
+    },
+    disconnected: {
+      dot: "bg-muted",
+      text: "no engine found — download & start the bloodhound engine, then retry",
+      tone: "text-muted",
+    },
+  };
+  const s = map[status] || map.idle;
+  return (
+    <div className="flex items-center gap-2 text-xs font-mono">
+      <span className={`inline-block w-2 h-2 rounded-full ${s.dot}`} />
+      <span className={s.tone}>{s.text}</span>
+      {(status === "disconnected" || status === "connected") && (
+        <button
+          onClick={onRetry}
+          disabled={retrying}
+          className="ml-1 px-2 py-0.5 rounded border border-primary/25 text-primary hover:bg-primary/10 disabled:opacity-40 transition-colors"
+        >
+          {retrying ? "…" : "Retry"}
+        </button>
+      )}
+    </div>
+  );
+}
+
 // ── result rendering ────────────────────────────────────────────────────────
 
 function ResultBlocks({ blocks, federation }) {
@@ -115,11 +153,22 @@ function renderBlockBody(b, federation) {
 // ── page ────────────────────────────────────────────────────────────────────
 
 export default function RepoLens() {
+  // data source: fetch from GitHub (token, browser fetch) or read a local path via
+  // the downloaded engine over localhost HTTP. The two are sibling producers of the
+  // same {federation,errors} shape; only this page picks which one to call.
+  const [source, setSource] = useState("github"); // "github" | "local"
   const [token, setToken] = useState("");
   const [reposInput, setReposInput] = useState("");
+  const [pathsInput, setPathsInput] = useState(""); // separate from reposInput: different validation, no silent reinterpretation on toggle
   const [analysing, setAnalysing] = useState(false);
   const [progress, setProgress] = useState(null);
   const [federation, setFederation] = useState(null);
+
+  // local-engine handshake state. engineStatus drives the pill; the client lives in
+  // a ref so re-renders don't re-create it and the analyse callback can read it.
+  const [engineStatus, setEngineStatus] = useState("idle"); // idle|connecting|connected|disconnected
+  const [engineInfo, setEngineInfo] = useState(null); // {base, version} once connected
+  const engineClientRef = useRef(null);
 
   const [cells, setCells] = useState([]); // the accumulating transcript
   const seq = useRef(0);
@@ -142,15 +191,68 @@ export default function RepoLens() {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [cells.length]);
 
+  /**
+   * Probe the common local-engine ports in order for a live `GET /health`, and keep
+   * the first that answers as a bloodhound engine. Resolve-never-throw all the way
+   * down (connection-refused is the normal "no engine" state), so this only ever
+   * sets a verdict. Loads the engine code lazily so the GitHub-only user never pays
+   * for it. Returns the connected client, or null.
+   */
+  const discoverEngine = useCallback(async (signal) => {
+    setEngineStatus("connecting");
+    setEngineInfo(null);
+    engineClientRef.current = null;
+    const { EngineClient } = await import("@/lib/repo-lens/engine/client");
+    const { FetchTransport } = await import("@/lib/repo-lens/engine/transport");
+    const ports = [8734, 8080, 3939]; // engine's default first, then likely fallbacks
+    for (const port of ports) {
+      if (signal?.aborted) return null;
+      const client = new EngineClient(new FetchTransport(`http://127.0.0.1:${port}`, { timeoutMs: 1200 }));
+      const verdict = await client.health(signal);
+      if (verdict.status === "connected") {
+        engineClientRef.current = client;
+        setEngineInfo({ base: verdict.base, version: verdict.info.version });
+        setEngineStatus("connected");
+        return client;
+      }
+    }
+    setEngineStatus("disconnected");
+    return null;
+  }, []);
+
+  // Handshake when the user switches to the local source (and on mount if it starts
+  // there). GitHub source needs no probe. Aborts a stale probe if source flips back.
+  useEffect(() => {
+    if (source !== "local") return;
+    const ctrl = new AbortController();
+    discoverEngine(ctrl.signal);
+    return () => ctrl.abort();
+  }, [source, discoverEngine]);
+
   const analyse = useCallback(async () => {
     setAnalysing(true);
-    const repoList = reposInput.split(/[\n,]+/).map((s) => s.trim()).filter(Boolean);
     try {
-      const { federation: fed, errors } = await analyseFederation(repoList, {
-        token,
-        maxFiles: 400,
-        onProgress: (p) => setProgress(p),
-      });
+      let fed, errors;
+      if (source === "local") {
+        // ── the single branch ── everything below this if/else is source-agnostic.
+        const pathList = pathsInput.split(/[\n]+/).map((s) => s.trim()).filter(Boolean);
+        const client = engineClientRef.current;
+        if (!client) {
+          throw new Error("no local engine connected — download & start the bloodhound engine, then Retry");
+        }
+        const { analyseLocalFederation } = await import("@/lib/repo-lens/engine/analyse-local");
+        ({ federation: fed, errors } = await analyseLocalFederation(pathList, {
+          client,
+          onProgress: (p) => setProgress(p),
+        }));
+      } else {
+        const repoList = reposInput.split(/[\n,]+/).map((s) => s.trim()).filter(Boolean);
+        ({ federation: fed, errors } = await analyseFederation(repoList, {
+          token,
+          maxFiles: 400,
+          onProgress: (p) => setProgress(p),
+        }));
+      }
       setFederation(fed);
       if (fed.repos.length > 0) {
         push("chart", () => <DashboardCell federation={fed} onSelectRepo={focusRepo} />);
@@ -167,7 +269,7 @@ export default function RepoLens() {
       setAnalysing(false);
       setProgress(null);
     }
-  }, [token, reposInput, push]);
+  }, [source, token, reposInput, pathsInput, push]);
 
   // clicking a repo in a chart injects a scoped query into the input line
   const focusRepo = useCallback((repo) => {
@@ -250,33 +352,88 @@ export default function RepoLens() {
 
             {/* ── access ── */}
             <div className="bg-darkSecondary/60 rounded-2xl p-6 border border-primary/10 mb-8">
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-1">
-                <div>
-                  <label className="text-xs font-mono text-muted uppercase tracking-widest">GitHub token</label>
-                  <input
-                    type="password"
-                    value={token}
-                    onChange={(e) => setToken(e.target.value)}
-                    placeholder="ghp_… (personal-access token, repo read)"
-                    className="w-full mt-1 bg-dark border border-primary/15 rounded-lg px-3 py-2 text-sm text-light font-mono focus:border-primary outline-none"
-                  />
-                  <div className="text-xs text-muted mt-1">Stays in your browser; sent only to api.github.com.</div>
-                </div>
-                <div>
-                  <label className="text-xs font-mono text-muted uppercase tracking-widest">Repositories</label>
-                  <textarea
-                    value={reposInput}
-                    onChange={(e) => setReposInput(e.target.value)}
-                    placeholder={"owner/repo\nowner/other-repo  (one per line or comma-separated)"}
-                    rows={3}
-                    className="w-full mt-1 bg-dark border border-primary/15 rounded-lg px-3 py-2 text-sm text-light font-mono focus:border-primary outline-none resize-none"
-                  />
-                </div>
+              {/* source toggle — GitHub fetch vs a downloaded local engine */}
+              <div className="flex gap-2 mb-5">
+                <button
+                  onClick={() => setSource("github")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    source === "github" ? "bg-primary text-dark" : "bg-surface text-muted hover:text-light"
+                  }`}
+                >
+                  GitHub
+                </button>
+                <button
+                  onClick={() => setSource("local")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    source === "local" ? "bg-primary text-dark" : "bg-surface text-muted hover:text-light"
+                  }`}
+                >
+                  Local engine
+                </button>
+                <span className="ml-auto text-[11px] font-mono text-muted self-center">
+                  {source === "github"
+                    ? "fetches api.github.com in your browser"
+                    : "reads a local path via the engine on your machine"}
+                </span>
               </div>
+
+              {source === "github" ? (
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-1">
+                  <div>
+                    <label className="text-xs font-mono text-muted uppercase tracking-widest">GitHub token</label>
+                    <input
+                      type="password"
+                      value={token}
+                      onChange={(e) => setToken(e.target.value)}
+                      placeholder="ghp_… (personal-access token, repo read)"
+                      className="w-full mt-1 bg-dark border border-primary/15 rounded-lg px-3 py-2 text-sm text-light font-mono focus:border-primary outline-none"
+                    />
+                    <div className="text-xs text-muted mt-1">Stays in your browser; sent only to api.github.com.</div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-mono text-muted uppercase tracking-widest">Repositories</label>
+                    <textarea
+                      value={reposInput}
+                      onChange={(e) => setReposInput(e.target.value)}
+                      placeholder={"owner/repo\nowner/other-repo  (one per line or comma-separated)"}
+                      rows={3}
+                      className="w-full mt-1 bg-dark border border-primary/15 rounded-lg px-3 py-2 text-sm text-light font-mono focus:border-primary outline-none resize-none"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <EngineStatusPill
+                    status={engineStatus}
+                    info={engineInfo}
+                    onRetry={() => discoverEngine()}
+                    retrying={engineStatus === "connecting"}
+                  />
+                  <div>
+                    <label className="text-xs font-mono text-muted uppercase tracking-widest">Local repository paths</label>
+                    <textarea
+                      value={pathsInput}
+                      onChange={(e) => setPathsInput(e.target.value)}
+                      placeholder={"C:\\Users\\you\\code\\my-repo\n/home/you/code/other-repo  (one absolute path per line)"}
+                      rows={3}
+                      className="w-full mt-1 bg-dark border border-primary/15 rounded-lg px-3 py-2 text-sm text-light font-mono focus:border-primary outline-none resize-none"
+                    />
+                    <div className="text-xs text-muted mt-1">
+                      No token needed — the engine reads the working tree on your machine. Nothing is sent to Bloodhound.
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="flex items-center gap-4 mt-4">
                 <button
                   onClick={analyse}
-                  disabled={analysing || !token || !reposInput.trim()}
+                  disabled={
+                    analysing ||
+                    (source === "github"
+                      ? !token || !reposInput.trim()
+                      : engineStatus !== "connected" || !pathsInput.trim())
+                  }
                   className="bg-primary text-dark font-bold px-6 py-2.5 rounded-lg text-sm disabled:opacity-40 hover:shadow-glow transition-all"
                 >
                   {analysing ? "Analysing…" : ready ? "Re-analyse" : "Analyse repos"}
