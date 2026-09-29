@@ -167,8 +167,10 @@ identities. Your edits made directly on a host come home under your canonical
 identity. A manifest remote is matched to an account by host, or explicitly with
 `account = "<id>"`.
 
-**KeePassXC.** `git-setup --apply` does two things for each host. It replaces the
-inherited credential helper (e.g. Git Credential Manager) with `keepassxc`, which is
+**KeePassXC.** `git-setup --apply` does two things for each host. It asks
+`keepassxc` first, keeping the previously configured helper (e.g. Git Credential
+Manager) behind it as a fallback, so a host whose token is not in KeePassXC yet
+keeps working (`--strict` drops the fallback). `keepassxc` is
 [`git-credential-keepassxc`](https://github.com/Frederick888/git-credential-keepassxc)
 asking your unlocked KeePassXC. And it adds an `includeIf` rule, so a repo whose
 remote is on that host commits with that account's identity. In KeePassXC:

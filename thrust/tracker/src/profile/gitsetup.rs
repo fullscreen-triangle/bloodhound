@@ -31,15 +31,40 @@ fn identity_file(p: &Profile, a: &Account) -> PathBuf {
     dir.join(format!("identity-{}.gitconfig", a.id))
 }
 
+/// The helpers git would otherwise use for every host (e.g. Git Credential Manager).
+fn inherited_helpers() -> Vec<String> {
+    Command::new("git")
+        .args(["config", "--get-all", "credential.helper"])
+        .output()
+        .map(|o| {
+            String::from_utf8_lossy(&o.stdout)
+                .lines()
+                .map(str::trim)
+                .filter(|h| !h.is_empty() && *h != HELPER)
+                .map(str::to_string)
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
 /// `git config --global` arguments, one change each.
-fn plan(p: &Profile) -> Vec<Vec<String>> {
+///
+/// KeePassXC is asked first; the previously configured helpers stay behind it as a
+/// fallback, so hosts whose token is not in KeePassXC yet keep working. With
+/// `strict`, KeePassXC is the only helper for these hosts.
+fn plan(p: &Profile, strict: bool) -> Vec<Vec<String>> {
+    let fallback = if strict { Vec::new() } else { inherited_helpers() };
     let mut steps = Vec::new();
     for a in &p.accounts {
         let scope = format!("credential.https://{}", a.host);
         steps.push(vec!["--unset-all".into(), format!("{scope}.helper")]);
         steps.push(vec!["--add".into(), format!("{scope}.helper"), String::new()]);
         steps.push(vec!["--add".into(), format!("{scope}.helper"), HELPER.into()]);
-        steps.push(vec![format!("{scope}.username"), a.user.clone()]);
+        for h in &fallback {
+            steps.push(vec!["--add".into(), format!("{scope}.helper"), h.clone()]);
+        }
+        // No `username` pin: the KeePassXC helper matches by URL, and a pin would hide
+        // credentials the fallback stored under another name (e.g. GitLab's "oauth2").
         let file = identity_file(p, a).to_string_lossy().replace('\\', "/");
         for pattern in [format!("https://{}/**", a.host), format!("git@{}:**", a.host)] {
             steps.push(vec![format!("includeIf.hasconfig:remote.*.url:{pattern}.path"), file.clone()]);
@@ -55,8 +80,8 @@ fn show(step: &[String]) -> String {
         .join(" ")
 }
 
-pub fn run(p: &Profile, apply: bool) -> Result<()> {
-    let steps = plan(p);
+pub fn run(p: &Profile, apply: bool, strict: bool) -> Result<()> {
+    let steps = plan(p, strict);
     println!("Identity files (one per account):");
     for a in &p.accounts {
         println!("  {}  →  {} <{}>", identity_file(p, a).display(), a.name, a.email);

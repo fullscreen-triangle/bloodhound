@@ -204,6 +204,10 @@ pub enum ProfileCmd {
     GitSetup {
         #[arg(long)]
         apply: bool,
+        /// Make KeePassXC the only credential helper for these hosts (default: it is
+        /// asked first, and the previous helper stays behind it as a fallback).
+        #[arg(long)]
+        strict: bool,
     },
 }
 
@@ -212,7 +216,7 @@ pub fn run(cmd: ProfileCmd) -> Result<()> {
         ProfileCmd::Init => cmd_init(),
         ProfileCmd::Show => cmd_show(),
         ProfileCmd::Repos { accounts, json } => cmd_repos(accounts, json),
-        ProfileCmd::GitSetup { apply } => gitsetup::run(&Profile::require()?, apply),
+        ProfileCmd::GitSetup { apply, strict } => gitsetup::run(&Profile::require()?, apply, strict),
     }
 }
 
