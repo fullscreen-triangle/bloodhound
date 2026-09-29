@@ -16,6 +16,10 @@ readme = "README.md"
 # independent of the (unrelated) bloodhound-vm workspace above it.
 [workspace]
 
+[lib]
+name = "tracker"
+path = "src/lib.rs"
+
 [[bin]]
 name = "tracker"
 path = "src/main.rs"
@@ -26,6 +30,9 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 anyhow = "1.0"
 thiserror = "1.0"
+toml = "0.8"
+toml_edit = "0.22"
+globset = "0.4"
 
 [dev-dependencies]
 tempfile = "3"

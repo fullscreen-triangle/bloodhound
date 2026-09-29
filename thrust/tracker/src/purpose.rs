@@ -76,7 +76,7 @@ pub fn index(repo_root: &Path) -> Result<()> {
 }
 
 /// One line of a `purpose ask` result slice: `file:line [kind] name` + snippet.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct AskHit {
     pub file: String,
     pub line: usize,

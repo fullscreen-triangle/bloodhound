@@ -15,6 +15,14 @@ use std::path::{Path, PathBuf};
 pub const DIR: &str = ".tracker";
 const FILE: &str = "federation.json";
 
+/// The user's home directory (`USERPROFILE` on Windows, else `HOME`).
+pub fn home_dir() -> PathBuf {
+    std::env::var_os("USERPROFILE")
+        .or_else(|| std::env::var_os("HOME"))
+        .map(PathBuf::from)
+        .unwrap_or_default()
+}
+
 /// A single tracked repo's persisted record.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RepoRecord {
@@ -84,6 +92,22 @@ impl Federation {
             cur = dir.parent();
         }
         Err(TrackerError::NoFederation(start.to_path_buf()))
+    }
+
+    /// As [`discover`](Self::discover), falling back to the home federation
+    /// (`~/.tracker/federation.json`), so the tool works from any directory.
+    pub fn locate(start: &Path) -> Result<Federation> {
+        match Self::discover(start) {
+            Err(TrackerError::NoFederation(_)) => {
+                let home = home_dir();
+                if Self::file_at(&home).exists() {
+                    Self::load(&home)
+                } else {
+                    Err(TrackerError::NoFederation(start.to_path_buf()))
+                }
+            }
+            other => other,
+        }
     }
 
     fn load(root: &Path) -> Result<Federation> {

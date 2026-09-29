@@ -58,11 +58,74 @@ pub enum Cmd {
 
     /// Hand a goal to the execution organ (network-yield). Degrades if not installed.
     Run { repo: String, goal: String },
+
+    /// Keep a repo's several origins (GitHub, GitLab, company/university GitLab) in step,
+    /// each seeing only the paths its visibility manifest allows.
+    Sync {
+        #[command(subcommand)]
+        action: crate::sync::SyncCmd,
+    },
+
+    /// You across every forge: accounts, per-host identities, and all your repos in one view.
+    /// Holds no secrets; credentials come from KeePassXC through git.
+    Profile {
+        #[command(subcommand)]
+        action: crate::profile::ProfileCmd,
+    },
+
+    /// List every question and action this tool offers, with its JSON argument schema.
+    Describe,
+
+    /// Run one operation with JSON arguments and print its JSON result.
+    ///
+    /// Failures are printed as {"error": {"code", "message"}} and exit non-zero.
+    /// Example: tracker call sync_visibility '{"paths": ["bitspark/pricing.md"]}'
+    Call {
+        /// Operation name (see `tracker describe`).
+        op: String,
+        /// Arguments as a JSON object; `-` reads them from stdin. Default: {}.
+        args: Option<String>,
+    },
+
+    /// Serve every operation to AI agents over the Model Context Protocol (stdio).
+    Mcp {
+        /// Directory to treat as the current repo (default: where the server starts).
+        #[arg(long)]
+        root: Option<PathBuf>,
+    },
+}
+
+impl Cli {
+    /// True for commands whose output is read by programs, so errors go to stdout as JSON.
+    pub fn machine(&self) -> bool {
+        matches!(self.command, Cmd::Describe | Cmd::Call { .. })
+    }
 }
 
 /// Entry point from `main`.
 pub fn run(cli: Cli) -> Result<()> {
     match cli.command {
+        Cmd::Describe => {
+            println!("{}", pretty(&crate::api::describe()));
+            Ok(())
+        }
+        Cmd::Call { op, args } => {
+            let text = match args.as_deref() {
+                None => "{}".to_string(),
+                Some("-") => std::io::read_to_string(std::io::stdin())?,
+                Some(s) => s.to_string(),
+            };
+            let args: serde_json::Value = serde_json::from_str(&text)
+                .map_err(|e| TrackerError::BadArgs(format!("arguments are not JSON: {e}")))?;
+            println!("{}", pretty(&crate::api::call(&op, args)?));
+            Ok(())
+        }
+        Cmd::Mcp { root } => {
+            if let Some(r) = root {
+                std::env::set_current_dir(&r).map_err(|_| TrackerError::BadRepoPath(r))?;
+            }
+            Ok(crate::mcp::serve()?)
+        }
         Cmd::Init => cmd_init(),
         Cmd::Add { path, name, remote } => cmd_add(path, name, remote),
         Cmd::List => cmd_list(),
@@ -70,11 +133,17 @@ pub fn run(cli: Cli) -> Result<()> {
         Cmd::Ask { question } => cmd_ask(question),
         Cmd::Drift { repo } => cmd_drift(repo),
         Cmd::Run { repo, goal } => cmd_run(repo, goal),
+        Cmd::Sync { action } => crate::sync::run(action),
+        Cmd::Profile { action } => crate::profile::run(action),
     }
 }
 
 fn cwd() -> Result<PathBuf> {
     Ok(std::env::current_dir()?)
+}
+
+fn pretty(v: &serde_json::Value) -> String {
+    serde_json::to_string_pretty(v).expect("JSON values serialise")
 }
 
 fn cmd_init() -> Result<()> {
@@ -86,7 +155,7 @@ fn cmd_init() -> Result<()> {
 }
 
 fn cmd_add(path: PathBuf, name: Option<String>, remote: Option<String>) -> Result<()> {
-    let mut fed = Federation::discover(&cwd()?)?;
+    let mut fed = Federation::locate(&cwd()?)?;
     let abs = path
         .canonicalize()
         .map_err(|_| TrackerError::BadRepoPath(path.clone()))?;
@@ -129,7 +198,7 @@ fn cmd_add(path: PathBuf, name: Option<String>, remote: Option<String>) -> Resul
 }
 
 fn cmd_list() -> Result<()> {
-    let fed = Federation::discover(&cwd()?)?;
+    let fed = Federation::locate(&cwd()?)?;
     if fed.repos.is_empty() {
         println!("No repos tracked yet. Add one with `tracker add <path>`.");
         return Ok(());
@@ -149,7 +218,7 @@ fn cmd_list() -> Result<()> {
 }
 
 fn cmd_sense(repo: String, question: Option<String>) -> Result<()> {
-    let fed = Federation::discover(&cwd()?)?;
+    let fed = Federation::locate(&cwd()?)?;
     let record = fed.get(&repo)?;
     ensure_purpose()?;
     // I3: freshness — re-index so the search reflects the repo as it is now.
@@ -183,7 +252,7 @@ fn cmd_sense(repo: String, question: Option<String>) -> Result<()> {
 }
 
 fn cmd_ask(question: String) -> Result<()> {
-    let fed = Federation::discover(&cwd()?)?;
+    let fed = Federation::locate(&cwd()?)?;
     ensure_purpose()?;
     if fed.repos.is_empty() {
         println!("No repos tracked yet.");
@@ -209,34 +278,17 @@ fn cmd_ask(question: String) -> Result<()> {
 }
 
 fn cmd_drift(repo: String) -> Result<()> {
-    let mut fed = Federation::discover(&cwd()?)?;
-    ensure_purpose()?;
-    let path = fed.get(&repo)?.path.clone();
-    let old = fed.get(&repo)?.chi;
-
-    // Reconstruct the current sense (construction phase, I4).
-    purpose::index(&path)?;
-    let index = Index::load(&path, &repo)?;
-    let character = chi::compute(&index);
-    let new = character.chi;
-
-    // Commit the recompute (I2) and persist the new χ.
-    {
-        let record = fed.get_mut(&repo)?;
-        record.record_act();
-        record.chi = Some(new);
-    }
-    fed.save()?;
-
-    match old {
+    // Reconstruct the current sense (construction phase, I4), then commit it (I2).
+    let d = crate::api::drift(&repo)?;
+    let new = d.current;
+    match d.previous {
         Some(prev) => {
             let delta = new - prev;
-            let moved = delta.abs() > 1e-9;
             println!(
                 "{repo}: χ {prev:.3} → {new:.3} ({}{:.3}). {}",
                 if delta >= 0.0 { "+" } else { "" },
                 delta,
-                if moved {
+                if d.moved {
                     "The repo's sense has MOVED."
                 } else {
                     "The repo's sense is unchanged."
@@ -249,7 +301,7 @@ fn cmd_drift(repo: String) -> Result<()> {
 }
 
 fn cmd_run(repo: String, goal: String) -> Result<()> {
-    let fed = Federation::discover(&cwd()?)?;
+    let fed = Federation::locate(&cwd()?)?;
     let _record = fed.get(&repo)?; // validate the repo exists first
                                    // Execution organ (network-yield) — argv not yet pinned; degrade gracefully.
     eprintln!(
