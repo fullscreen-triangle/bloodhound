@@ -73,6 +73,13 @@ pub enum Cmd {
         action: crate::profile::ProfileCmd,
     },
 
+    /// Keep every account's token alive: check them, and renew them before they expire.
+    /// Tokens live only in KeePassXC; tracker keeps just their expiry dates.
+    Tokens {
+        #[command(subcommand)]
+        action: TokensCmd,
+    },
+
     /// List every question and action this tool offers, with its JSON argument schema.
     Describe,
 
@@ -95,6 +102,41 @@ pub enum Cmd {
     },
 }
 
+#[derive(Subcommand)]
+pub enum TokensCmd {
+    /// Check every token: working, expiring, missing or rejected. Renews nothing.
+    Status {
+        #[arg(long = "account")]
+        accounts: Vec<String>,
+    },
+    /// Check every token and renew the ones that are due (GitLab rotates itself).
+    Refresh {
+        #[arg(long = "account")]
+        accounts: Vec<String>,
+        /// Renew GitLab tokens now even if they are not due.
+        #[arg(long)]
+        force: bool,
+        /// For scheduled runs: never wait for KeePassXC to be unlocked; log to ~/.tracker/tokens.log.
+        #[arg(long)]
+        unattended: bool,
+    },
+    /// Store a token you just made for an account (checked against the forge first).
+    ///
+    /// Opens the page where the token is made, then reads it from stdin.
+    Set {
+        account: String,
+        /// Do not open the token page in the browser.
+        #[arg(long)]
+        no_open: bool,
+    },
+    /// Renew tokens daily in the background (Windows Task Scheduler; prints a cron line elsewhere).
+    Schedule {
+        /// Remove the daily renewal instead.
+        #[arg(long)]
+        off: bool,
+    },
+}
+
 impl Cli {
     /// True for commands whose output is read by programs, so errors go to stdout as JSON.
     pub fn machine(&self) -> bool {
@@ -105,6 +147,7 @@ impl Cli {
 /// Entry point from `main`.
 pub fn run(cli: Cli) -> Result<()> {
     match cli.command {
+        Cmd::Tokens { action } => cmd_tokens(action),
         Cmd::Describe => {
             println!("{}", pretty(&crate::api::describe()));
             Ok(())
@@ -347,4 +390,87 @@ fn report_hits(repo: &str, q: &str, hits: &[purpose::AskHit]) {
             println!("      {}", h.snippet);
         }
     }
+}
+
+fn print_token_statuses(statuses: &[crate::tokens::Status]) {
+    println!("{:<10} {:<24} {:<10} {:<18} ACTION", "ACCOUNT", "HOST", "STATE", "EXPIRES");
+    for s in statuses {
+        let state = serde_json::to_value(s.state)
+            .ok()
+            .and_then(|v| v.as_str().map(str::to_string))
+            .unwrap_or_default();
+        let expires = match (&s.expires_at, s.days_left) {
+            (Some(e), Some(d)) => format!("{e} ({d}d)"),
+            _ if matches!(s.state, crate::tokens::State::Ok | crate::tokens::State::Rotated) => "never".to_string(),
+            _ => "—".to_string(),
+        };
+        println!(
+            "{:<10} {:<24} {:<10} {:<18} {}",
+            s.account,
+            s.host,
+            state,
+            expires,
+            s.action.as_deref().unwrap_or("")
+        );
+        if let Some(u) = &s.issue_url {
+            println!("{:<10} {u}", "");
+        }
+    }
+}
+
+fn open_in_browser(url: &str) {
+    let _ = if cfg!(windows) {
+        std::process::Command::new("cmd").args(["/C", "start", "", url]).status()
+    } else if cfg!(target_os = "macos") {
+        std::process::Command::new("open").arg(url).status()
+    } else {
+        std::process::Command::new("xdg-open").arg(url).status()
+    };
+}
+
+fn cmd_tokens(cmd: TokensCmd) -> Result<()> {
+    use crate::tokens::{self, Options};
+    match cmd {
+        TokensCmd::Status { accounts } => {
+            let o = Options { rotate: false, force: false, wait_unlock: true };
+            print_token_statuses(&tokens::refresh(&accounts, &o)?);
+        }
+        TokensCmd::Refresh { accounts, force, unattended } => {
+            let o = Options { rotate: true, force, wait_unlock: !unattended };
+            let result = tokens::refresh(&accounts, &o);
+            if unattended {
+                let log = crate::profile::Profile::path().with_file_name("tokens.log");
+                let line = match &result {
+                    Ok(s) => serde_json::to_string(s).unwrap_or_default(),
+                    Err(e) => format!("error: {e}"),
+                };
+                let stamp = std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .map(|d| d.as_secs())
+                    .unwrap_or(0);
+                if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open(log) {
+                    use std::io::Write as _;
+                    let _ = writeln!(f, "{stamp} {line}");
+                }
+            }
+            print_token_statuses(&result?);
+        }
+        TokensCmd::Set { account, no_open } => {
+            let profile = crate::profile::Profile::require()?;
+            let a = profile
+                .account(&account)
+                .ok_or_else(|| TrackerError::Profile(format!("no account {account:?} in the profile")))?;
+            let url = tokens::issue_url(a);
+            if !no_open {
+                open_in_browser(&url);
+            }
+            eprintln!("Make a token for {} at:\n  {url}", a.host);
+            eprintln!("Paste it here and press Enter (it goes straight to KeePassXC):");
+            let mut token = String::new();
+            std::io::stdin().read_line(&mut token)?;
+            print_token_statuses(&[tokens::set(&account, &token)?]);
+        }
+        TokensCmd::Schedule { off } => println!("{}", tokens::schedule(!off)?),
+    }
+    Ok(())
 }

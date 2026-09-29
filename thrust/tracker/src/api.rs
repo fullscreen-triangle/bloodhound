@@ -297,6 +297,45 @@ pub fn ops() -> Vec<Op> {
                 to_value(&profile::repos(&a.accounts)?)
             },
         },
+        // ── tokens: every account's token kept alive ──
+        Op {
+            name: "tokens_status",
+            kind: Kind::Question,
+            network: true,
+            summary: "Check every account's token (held in KeePassXC): working, expiring soon, missing, or rejected, with \
+                      its expiry date. Renews nothing. Tokens themselves are never returned.",
+            schema: || schema(json!({
+                "accounts": { "type": "array", "items": { "type": "string" }, "description": "Only these account ids (default: all)." },
+            }), &[]),
+            run: |v| {
+                #[derive(Deserialize)]
+                #[serde(deny_unknown_fields)]
+                struct A { #[serde(default)] accounts: Vec<String> }
+                let a: A = args(v)?;
+                let o = crate::tokens::Options { rotate: false, force: false, wait_unlock: false };
+                Ok(json!({ "tokens": crate::tokens::refresh(&a.accounts, &o)? }))
+            },
+        },
+        Op {
+            name: "tokens_refresh",
+            kind: Kind::Action,
+            network: true,
+            summary: "Renew every token that is due: GitLab tokens rotate themselves (the new token goes straight into \
+                      KeePassXC, the old one is revoked); for GitHub and Gitea, which cannot rotate by API, it reports \
+                      which to reissue by hand and where. Tokens themselves are never returned.",
+            schema: || schema(json!({
+                "accounts": { "type": "array", "items": { "type": "string" }, "description": "Only these account ids (default: all)." },
+                "force": { "type": "boolean", "default": false, "description": "Rotate GitLab tokens even when not due." },
+            }), &[]),
+            run: |v| {
+                #[derive(Deserialize)]
+                #[serde(deny_unknown_fields)]
+                struct A { #[serde(default)] accounts: Vec<String>, #[serde(default)] force: bool }
+                let a: A = args(v)?;
+                let o = crate::tokens::Options { rotate: true, force: a.force, wait_unlock: false };
+                Ok(json!({ "tokens": crate::tokens::refresh(&a.accounts, &o)? }))
+            },
+        },
         // ── sync: one repo, several origins, per-origin visibility ──
         Op {
             name: "sync_manifest",

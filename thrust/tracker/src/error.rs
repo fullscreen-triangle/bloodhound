@@ -113,6 +113,12 @@ pub enum TrackerError {
     #[error("forge: {0}")]
     Forge(String),
 
+    #[error("KeePassXC: {0}")]
+    Keeper(String),
+
+    #[error("KeePassXC is locked; unlock it and try again")]
+    KeeperLocked,
+
     #[error("bad arguments: {0}")]
     BadArgs(String),
 
@@ -162,6 +168,8 @@ impl TrackerError {
             Profile(_) => "profile",
             Forge(_) => "forge",
             BadArgs(_) => "bad_args",
+            Keeper(_) => "keeper",
+            KeeperLocked => "keeper_locked",
             UnknownOperation(_) => "unknown_operation",
             Io(_) => "io",
             StateCorrupt { .. } => "state_corrupt",

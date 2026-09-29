@@ -185,6 +185,44 @@ remote is on that host commits with that account's identity. In KeePassXC:
 
 Tokens reach `curl` on stdin, never on a command line.
 
+## Tokens that look after themselves: `tracker tokens`
+
+Every account's token lives only in KeePassXC. tracker keeps track of each one:
+- whether it still works;
+- when it expires;
+- whether it must be replaced.
+
+It never opens the vault. It reaches a token through the paired helper, and
+KeePassXC decides whether to answer. It holds the token in memory only for the
+one API call that needs it, and writes a replacement back the same way. On disk it
+keeps metadata only (`~/.tracker/tokens.json`: id, scopes, expiry, last check).
+
+```bash
+tracker tokens status            # every token: ok / expiring / missing / invalid, and expiry
+tracker tokens set gitlab        # first time only: opens the page, paste the token, it goes to KeePassXC
+tracker tokens refresh           # renew what is due now
+tracker tokens schedule          # renew daily in the background (Task Scheduler / cron)
+```
+
+What each forge allows:
+
+| Forge | Renewal |
+|---|---|
+| GitLab | **Automatic.** When a token has 14 days or fewer left, tracker rotates it through GitLab's own API. The new one (90-day lifetime) goes straight into KeePassXC, and GitLab revokes the old one. The token needs the `api` (or `self_rotate`) scope. |
+| GitHub | No API can issue or rotate a token. Make a classic token with no expiry; tracker checks it still works. If you choose an expiring one, tracker reads its expiry date and warns ahead of it with the page to reissue it. |
+| Gitea | No API can issue a token without your password, and Gitea tokens do not expire. tracker checks the token still works. |
+
+A rotation first makes sure KeePassXC will accept a write. Only then does it ask
+GitLab for the new token, so an old token is never revoked while the new one has
+nowhere to go. If the write still fails, the new token is saved to
+`~/.tracker/rescue-<account>.token` and the run fails loudly. The scheduled run
+never waits for KeePassXC. If the vault is locked, it logs that to
+`~/.tracker/tokens.log`, and the 14-day window leaves room to try again.
+
+Agents get `tokens_status` and `tokens_refresh`. Neither ever returns a token.
+`tokens set` is deliberately not exposed to agents, so raw tokens never pass
+through an AI's context.
+
 ## One repo, several origins: `tracker sync`
 
 For a repo that lives on several hosts (GitHub, gitlab.com, a company GitLab, a

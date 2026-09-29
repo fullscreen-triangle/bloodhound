@@ -30,3 +30,5 @@ pub mod purpose;
 pub mod registry;
 #[doc(hidden)]
 pub mod sync;
+#[doc(hidden)]
+pub mod tokens;
