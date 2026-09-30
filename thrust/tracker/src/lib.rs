@@ -14,6 +14,7 @@
 //!
 //! See `thrust/docs/tracker/repo-federation-tracker-design.md`.
 
+pub mod agent;
 pub mod api;
 pub mod error;
 pub mod mcp;
@@ -23,11 +24,17 @@ pub mod chi;
 #[doc(hidden)]
 pub mod cli;
 #[doc(hidden)]
+pub mod gitops;
+#[doc(hidden)]
+pub mod graph;
+#[doc(hidden)]
 pub mod profile;
 #[doc(hidden)]
 pub mod purpose;
 #[doc(hidden)]
 pub mod registry;
+#[doc(hidden)]
+pub mod serve;
 #[doc(hidden)]
 pub mod sync;
 #[doc(hidden)]

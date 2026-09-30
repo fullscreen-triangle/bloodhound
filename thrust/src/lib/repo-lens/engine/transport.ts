@@ -77,10 +77,19 @@ export class FetchTransport implements Transport {
     }
 
     try {
+      // The tracker engine answers only a paired browser (see lib/tracker/engine.js).
+      const headers: Record<string, string> = {};
+      if (init.json !== undefined) headers["content-type"] = "application/json";
+      try {
+        const token = window.localStorage.getItem("tracker.engine.token");
+        if (token) headers.authorization = `Bearer ${token}`;
+      } catch {
+        // storage unavailable: unpaired
+      }
       const res = await fetch(url, {
         method: init.method ?? "GET",
         signal: ctrl.signal,
-        headers: init.json !== undefined ? { "content-type": "application/json" } : undefined,
+        headers,
         body: init.json !== undefined ? JSON.stringify(init.json) : undefined,
       });
       const raw = await res.text();

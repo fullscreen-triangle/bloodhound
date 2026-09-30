@@ -10,7 +10,9 @@ import { useEffect } from "react";
 const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-mont" });
 
 // Pages that manage their own chrome (no global Navbar/Footer)
-const BLANK_SCREEN_ROUTES = ["/", "/cytochrome"];
+const BLANK_SCREEN_ROUTES = ["/", "/cytochrome", "/login"];
+// Full-height app pages: navbar, but no footer below them
+const NO_FOOTER_ROUTES = ["/tracker"];
 
 export default function App({ Component, pageProps }) {
   const router = useRouter();
@@ -34,7 +36,7 @@ export default function App({ Component, pageProps }) {
         <AnimatePresence initial={false} mode="wait">
           <Component key={router.asPath} {...pageProps} />
         </AnimatePresence>
-        {!isBlankScreen && <Footer />}
+        {!isBlankScreen && !NO_FOOTER_ROUTES.includes(router.pathname) && <Footer />}
       </main>
     </>
   );

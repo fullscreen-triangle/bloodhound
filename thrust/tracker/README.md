@@ -310,6 +310,52 @@ the earlier projections.
 - Once pushed, history is permanent. Tightening the manifest hides paths from the
   next commit on; it cannot recall anything already pushed.
 
+## The website: `tracker graph` and `tracker serve`
+
+The site (`thrust/`, on Vercel) shows your repos, but everything it shows lives on
+your machine — the repos, the forge tokens in KeePassXC, the Ollama model. So the
+browser talks to a local engine:
+
+```bash
+tracker graph build                      # every git repo under ~/Documents → one knowledge graph
+tracker graph build --generator ollama   # richer facets; minutes instead of seconds
+tracker serve                            # the engine, on 127.0.0.1:8734
+```
+
+`graph build` writes each repo as a *card* — README opening, manifest descriptions,
+folder names, languages, but not its name — and lets `okgg` individuate the cards
+into facets and values, each triple backed by a cue word. The result, joined with git
+facts (remotes, hosts, last commit), goes to `~/.tracker/graph/federation.json`, and
+every repo found is registered in the home federation so it can be named in `repo`
+arguments. Nothing about your repos is written into the site's repository.
+
+`serve` prints a pairing link (`…/tracker#pair=<token>`); open it once per browser.
+The engine answers only:
+
+* on the loopback address, with a matching `Host` header (no DNS rebinding);
+* to the site's origins — defaults plus `~/.tracker/serve.toml` (`origins = [...]`,
+  `site = "..."`, `port = ...`) and `--origin` flags;
+* to a browser holding the pairing token (`~/.tracker/serve.token`; `--new-token`
+  unpairs every browser). Only `/health` is open.
+
+Questions run directly (`POST /call/{op}`). Actions never do: `POST /propose` keeps
+one, and it runs only on `POST /confirm/{id}`. The site's pages:
+
+| Page | What it is |
+|---|---|
+| **Repo Lens → Federation graph** | D3 force graph of repos and okgg values (hover an edge for its cue), similarity view, facet filters, charts by facet/forge/area/language/activity, the okgg V trajectory |
+| **Code** | any repo as on a forge: file tree at any branch, history, diffs; edit, create and delete files, commit (optionally on a new branch), push to a chosen origin, open a Codespace |
+| **Tracker** | a chat with the local Ollama model, which uses tracker's operations as tools and answers with charts; anything that changes a repo comes back as a card you confirm. Left: repos by last commit; right: repos you looked at |
+
+The chat model defaults to `llama3.2` (`TRACKER_MODEL`, `OLLAMA_HOST` override).
+On a CPU-only machine the first answer after a start is slow; `serve` warms the model
+in the background, and a question stops starting new model rounds after 150 s,
+returning what it found.
+
+The site itself is behind a password: set `SITE_PASSWORD` and `AUTH_SECRET` (any
+long random string) on the Vercel project. Without both, a deployment is locked
+(503); `next dev` runs open.
+
 ## Design invariants it honours
 
 From the split-attention-agents blueprint (each a checkable predicate):

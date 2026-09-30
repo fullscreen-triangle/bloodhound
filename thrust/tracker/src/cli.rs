@@ -94,11 +94,55 @@ pub enum Cmd {
         args: Option<String>,
     },
 
+    /// The federation as a knowledge graph (built by okgg): build it, query it, list recent repos.
+    Graph {
+        #[command(subcommand)]
+        action: GraphCmd,
+    },
+
+    /// Run the local engine the website talks to (loopback only, paired by token).
+    Serve {
+        #[arg(long)]
+        port: Option<u16>,
+        /// Also allow this site origin (repeatable), e.g. https://my-preview.vercel.app.
+        #[arg(long = "origin")]
+        origins: Vec<String>,
+        /// Make a new pairing token, unpairing every browser.
+        #[arg(long)]
+        new_token: bool,
+    },
+
     /// Serve every operation to AI agents over the Model Context Protocol (stdio).
     Mcp {
         /// Directory to treat as the current repo (default: where the server starts).
         #[arg(long)]
         root: Option<PathBuf>,
+    },
+}
+
+#[derive(Subcommand)]
+pub enum GraphCmd {
+    /// Find every git repo under a root and let okgg build the graph (also registers them).
+    Build {
+        /// Folder to scan (default: ~/Documents).
+        #[arg(long)]
+        root: Option<PathBuf>,
+        #[arg(long, default_value_t = 4)]
+        depth: usize,
+        /// lexical (seconds) or ollama (minutes, richer facets).
+        #[arg(long, default_value = "lexical")]
+        generator: String,
+        #[arg(long)]
+        model: Option<String>,
+        #[arg(long, default_value_t = 20)]
+        budget: u32,
+    },
+    /// Repos whose name, facet value or cue word contains QUERY.
+    Query { query: String },
+    /// Repos by last commit, newest first.
+    Recent {
+        #[arg(long, default_value_t = 15)]
+        limit: usize,
     },
 }
 
@@ -178,6 +222,10 @@ pub fn run(cli: Cli) -> Result<()> {
         Cmd::Run { repo, goal } => cmd_run(repo, goal),
         Cmd::Sync { action } => crate::sync::run(action),
         Cmd::Profile { action } => crate::profile::run(action),
+        Cmd::Graph { action } => cmd_graph(action),
+        Cmd::Serve { port, origins, new_token } => {
+            crate::serve::serve(crate::serve::load_config(port, &origins, new_token)?)
+        }
     }
 }
 
@@ -472,5 +520,25 @@ fn cmd_tokens(cmd: TokensCmd) -> Result<()> {
         }
         TokensCmd::Schedule { off } => println!("{}", tokens::schedule(!off)?),
     }
+    Ok(())
+}
+
+fn cmd_graph(action: GraphCmd) -> Result<()> {
+    let v = match action {
+        GraphCmd::Build { root, depth, generator, model, budget } => {
+            eprintln!("building the federation graph with okgg ({generator})…");
+            let built = crate::graph::build(&crate::graph::BuildOptions {
+                root: root.unwrap_or_else(crate::graph::default_root),
+                depth,
+                generator,
+                model,
+                budget,
+            })?;
+            serde_json::to_value(built).expect("serialisable")
+        }
+        GraphCmd::Query { query } => crate::graph::query(&query)?,
+        GraphCmd::Recent { limit } => crate::graph::recent(limit)?,
+    };
+    println!("{}", pretty(&v));
     Ok(())
 }

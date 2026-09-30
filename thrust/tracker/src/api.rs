@@ -9,6 +9,7 @@
 
 use crate::chi;
 use crate::error::{Result, TrackerError};
+use crate::{gitops, graph};
 use crate::profile::{self, Profile};
 use crate::purpose::{self, Index};
 use crate::registry::Federation;
@@ -549,6 +550,273 @@ pub fn ops() -> Vec<Op> {
                     account: a.account.as_deref(), mixed_messages: a.mixed_messages,
                 };
                 to_value(&edit::set_remote(&open(a.repo.as_deref())?, &spec, a.commit)?)
+            },
+        },
+        // ── the federation graph (okgg) ──
+        Op {
+            name: "graph_build",
+            kind: Kind::Action,
+            network: false,
+            summary: "Rebuild the federation knowledge graph: find every git repo under a root, describe each as a card, \
+                      and let okgg individuate them into witnessed facets and values. Also registers every repo found \
+                      in the home federation. The lexical generator takes seconds; ollama takes minutes.",
+            schema: || schema(json!({
+                "root": { "type": "string", "description": "Folder to scan (default: ~/Documents)." },
+                "depth": { "type": "integer", "minimum": 1, "maximum": 8, "default": 4 },
+                "generator": { "type": "string", "enum": ["lexical", "ollama"], "default": "lexical" },
+                "model": { "type": "string", "description": "Ollama model, e.g. llama3.2." },
+                "budget": { "type": "integer", "minimum": 1, "maximum": 200, "default": 20 },
+            }), &[]),
+            run: |v| {
+                #[derive(Deserialize)]
+                #[serde(deny_unknown_fields)]
+                struct A { root: Option<PathBuf>, depth: Option<usize>, generator: Option<String>, model: Option<String>, budget: Option<u32> }
+                let a: A = args(v)?;
+                to_value(&graph::build(&graph::BuildOptions {
+                    root: a.root.unwrap_or_else(graph::default_root),
+                    depth: a.depth.unwrap_or(4),
+                    generator: a.generator.unwrap_or_else(|| "lexical".into()),
+                    model: a.model,
+                    budget: a.budget.unwrap_or(20),
+                })?)
+            },
+        },
+        Op {
+            name: "graph_query",
+            kind: Kind::Question,
+            network: false,
+            summary: "Which repos are about something: repos whose name, facet value or witnessing cue word contains the query, \
+                      with the triples that matched. Reads the last built graph.",
+            schema: || schema(json!({
+                "query": { "type": "string", "description": "One word or stem, e.g. \"entropy\" or \"rust\"." },
+            }), &["query"]),
+            run: |v| {
+                #[derive(Deserialize)]
+                #[serde(deny_unknown_fields)]
+                struct A { query: String }
+                let a: A = args(v)?;
+                graph::query(&a.query)
+            },
+        },
+        Op {
+            name: "repos_recent",
+            kind: Kind::Question,
+            network: false,
+            summary: "The repos committed to most recently, newest first, with branch, last commit subject, remotes and languages.",
+            schema: || schema(json!({
+                "limit": { "type": "integer", "minimum": 1, "maximum": 200, "default": 15 },
+            }), &[]),
+            run: |v| {
+                #[derive(Deserialize)]
+                #[serde(deny_unknown_fields)]
+                struct A { limit: Option<usize> }
+                let a: A = args(v)?;
+                graph::recent(a.limit.unwrap_or(15))
+            },
+        },
+        // ── browsing and editing a repo ──
+        Op {
+            name: "repo_tree",
+            kind: Kind::Question,
+            network: false,
+            summary: "Every file of a repo: in the working tree (with each changed file's git state), or at a branch, tag or commit.",
+            schema: || schema(json!({
+                "repo": { "type": "string", "description": REPO },
+                "rev": { "type": "string", "description": "Branch, tag or commit; omit for the working tree." },
+            }), &[]),
+            run: |v| {
+                #[derive(Deserialize)]
+                #[serde(deny_unknown_fields)]
+                struct A { repo: Option<String>, rev: Option<String> }
+                let a: A = args(v)?;
+                gitops::tree(&repo_dir(a.repo.as_deref())?, a.rev.as_deref())
+            },
+        },
+        Op {
+            name: "repo_file",
+            kind: Kind::Question,
+            network: false,
+            summary: "One file's content, from the working tree or at a branch, tag or commit. Images come back base64-encoded.",
+            schema: || schema(json!({
+                "repo": { "type": "string", "description": REPO },
+                "path": { "type": "string", "description": "Path inside the repo, with / separators." },
+                "rev": { "type": "string", "description": "Branch, tag or commit; omit for the working tree." },
+            }), &["path"]),
+            run: |v| {
+                #[derive(Deserialize)]
+                #[serde(deny_unknown_fields)]
+                struct A { repo: Option<String>, path: String, rev: Option<String> }
+                let a: A = args(v)?;
+                gitops::file(&repo_dir(a.repo.as_deref())?, &a.path, a.rev.as_deref())
+            },
+        },
+        Op {
+            name: "repo_diff",
+            kind: Kind::Question,
+            network: false,
+            summary: "A unified diff: the repo's uncommitted changes (optionally of one path), or what one commit changed.",
+            schema: || schema(json!({
+                "repo": { "type": "string", "description": REPO },
+                "commit": { "type": "string", "description": "A commit to show; omit for uncommitted changes." },
+                "path": { "type": "string" },
+            }), &[]),
+            run: |v| {
+                #[derive(Deserialize)]
+                #[serde(deny_unknown_fields)]
+                struct A { repo: Option<String>, commit: Option<String>, path: Option<String> }
+                let a: A = args(v)?;
+                gitops::diff(&repo_dir(a.repo.as_deref())?, a.commit.as_deref(), a.path.as_deref())
+            },
+        },
+        Op {
+            name: "repo_log",
+            kind: Kind::Question,
+            network: false,
+            summary: "Commits of a branch (default: the current one), newest first, optionally only those touching a path.",
+            schema: || schema(json!({
+                "repo": { "type": "string", "description": REPO },
+                "rev": { "type": "string" },
+                "path": { "type": "string" },
+                "limit": { "type": "integer", "minimum": 1, "maximum": 500, "default": 50 },
+            }), &[]),
+            run: |v| {
+                #[derive(Deserialize)]
+                #[serde(deny_unknown_fields)]
+                struct A { repo: Option<String>, rev: Option<String>, path: Option<String>, limit: Option<usize> }
+                let a: A = args(v)?;
+                gitops::log(&repo_dir(a.repo.as_deref())?, a.rev.as_deref(), a.path.as_deref(), a.limit.unwrap_or(50))
+            },
+        },
+        Op {
+            name: "repo_write",
+            kind: Kind::Action,
+            network: false,
+            summary: "Write a file in a repo's working tree (creating folders as needed), or delete it when `delete` is true. \
+                      Paths must stay inside the repo and outside .git.",
+            schema: || schema(json!({
+                "repo": { "type": "string", "description": REPO },
+                "path": { "type": "string" },
+                "content": { "type": "string", "description": "The whole new content of the file." },
+                "delete": { "type": "boolean", "default": false },
+            }), &["path"]),
+            run: |v| {
+                #[derive(Deserialize)]
+                #[serde(deny_unknown_fields)]
+                struct A { repo: Option<String>, path: String, content: Option<String>, #[serde(default)] delete: bool }
+                let a: A = args(v)?;
+                if !a.delete && a.content.is_none() {
+                    return Err(TrackerError::BadArgs("give `content`, or `delete: true`".into()));
+                }
+                gitops::write(&repo_dir(a.repo.as_deref())?, &a.path, if a.delete { None } else { a.content.as_deref() })
+            },
+        },
+        Op {
+            name: "repo_commit",
+            kind: Kind::Action,
+            network: false,
+            summary: "Commit changes in a repo: stage the given paths (default: every change) and commit with a message, \
+                      first switching to `branch` (created if missing). Pushing is separate: push_branch, or sync_run for \
+                      repos with a .sync.toml.",
+            schema: || schema(json!({
+                "repo": { "type": "string", "description": REPO },
+                "message": { "type": "string" },
+                "paths": { "type": "array", "items": { "type": "string" }, "description": "Only these paths (default: all changes)." },
+                "branch": { "type": "string", "description": "Commit on this branch, created from the current commit if it does not exist." },
+            }), &["message"]),
+            run: |v| {
+                #[derive(Deserialize)]
+                #[serde(deny_unknown_fields)]
+                struct A { repo: Option<String>, message: String, #[serde(default)] paths: Vec<String>, branch: Option<String> }
+                let a: A = args(v)?;
+                gitops::commit(&repo_dir(a.repo.as_deref())?, &a.message, &a.paths, a.branch.as_deref())
+            },
+        },
+        // ── git on one repo ──
+        Op {
+            name: "repo_status",
+            kind: Kind::Question,
+            network: false,
+            summary: "A repo's current branch, all branches, push remotes, uncommitted changes and last 20 commits.",
+            schema: || schema(json!({ "repo": { "type": "string", "description": REPO } }), &[]),
+            run: |v| {
+                #[derive(Deserialize)]
+                #[serde(deny_unknown_fields)]
+                struct A { repo: Option<String> }
+                let a: A = args(v)?;
+                gitops::status(&repo_dir(a.repo.as_deref())?)
+            },
+        },
+        Op {
+            name: "git_read",
+            kind: Kind::Question,
+            network: false,
+            summary: "Run a read-only git command in a repo (status, log, diff, show, branch, remote, ls-files, blame, grep, …). \
+                      Commands that could change the repo are refused; use git_exec for those.",
+            schema: || schema(json!({
+                "repo": { "type": "string", "description": REPO },
+                "args": { "type": "array", "items": { "type": "string" }, "description": "Arguments after `git`, e.g. [\"log\", \"--oneline\", \"-5\"]." },
+            }), &["args"]),
+            run: |v| {
+                #[derive(Deserialize)]
+                #[serde(deny_unknown_fields)]
+                struct A { repo: Option<String>, args: Vec<String> }
+                let a: A = args(v)?;
+                gitops::read(&repo_dir(a.repo.as_deref())?, &a.args)
+            },
+        },
+        Op {
+            name: "git_exec",
+            kind: Kind::Action,
+            network: true,
+            summary: "Run any git command in a repo (commit, checkout, branch, rm --cached, push, …) and return its output. \
+                      For a repo with several origins, prefer sync_run, which keeps hidden paths hidden.",
+            schema: || schema(json!({
+                "repo": { "type": "string", "description": REPO },
+                "args": { "type": "array", "items": { "type": "string" }, "description": "Arguments after `git`." },
+            }), &["args"]),
+            run: |v| {
+                #[derive(Deserialize)]
+                #[serde(deny_unknown_fields)]
+                struct A { repo: Option<String>, args: Vec<String> }
+                let a: A = args(v)?;
+                gitops::exec(&repo_dir(a.repo.as_deref())?, &a.args)
+            },
+        },
+        Op {
+            name: "push_branch",
+            kind: Kind::Action,
+            network: true,
+            summary: "Push a branch to the repo's remote on a profile account's forge (e.g. account \"github\"). \
+                      Refused for repos with a .sync.toml — use sync_run there.",
+            schema: || schema(json!({
+                "repo": { "type": "string", "description": REPO },
+                "branch": { "type": "string" },
+                "account": { "type": "string", "description": "Profile account id; its host picks the remote." },
+            }), &["branch", "account"]),
+            run: |v| {
+                #[derive(Deserialize)]
+                #[serde(deny_unknown_fields)]
+                struct A { repo: Option<String>, branch: String, account: String }
+                let a: A = args(v)?;
+                gitops::push_branch(&repo_dir(a.repo.as_deref())?, &a.branch, &a.account)
+            },
+        },
+        Op {
+            name: "codespace_open",
+            kind: Kind::Action,
+            network: true,
+            summary: "Open a GitHub Codespace for a repo with a GitHub remote: reuse (and start) an existing one, or create one \
+                      on the branch. Returns its web_url. Needs a GitHub token with the codespace scope.",
+            schema: || schema(json!({
+                "repo": { "type": "string", "description": REPO },
+                "branch": { "type": "string", "description": "Branch to open (default: the repo's default branch)." },
+            }), &[]),
+            run: |v| {
+                #[derive(Deserialize)]
+                #[serde(deny_unknown_fields)]
+                struct A { repo: Option<String>, branch: Option<String> }
+                let a: A = args(v)?;
+                gitops::codespace(&repo_dir(a.repo.as_deref())?, a.branch.as_deref())
             },
         },
     ]

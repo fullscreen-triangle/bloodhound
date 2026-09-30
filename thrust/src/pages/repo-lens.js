@@ -11,6 +11,7 @@ import { repoName, repoShortName, fileUrl } from "@/lib/repo-lens/model";
 import ChiBars from "@/components/repo-lens/ChiBars";
 import SalientTreemap from "@/components/repo-lens/SalientTreemap";
 import FragmentGraph from "@/components/repo-lens/FragmentGraph";
+import FederationDashboard from "@/components/tracker/FederationDashboard";
 
 /**
  * Repo Lens — a notebook/REPL over a federation of repos.
@@ -156,6 +157,7 @@ export default function RepoLens() {
   // data source: fetch from GitHub (token, browser fetch) or read a local path via
   // the downloaded engine over localhost HTTP. The two are sibling producers of the
   // same {federation,errors} shape; only this page picks which one to call.
+  const [view, setView] = useState("federation"); // "federation" | "notebook"
   const [source, setSource] = useState("github"); // "github" | "local"
   const [token, setToken] = useState("");
   const [reposInput, setReposInput] = useState("");
@@ -340,6 +342,34 @@ export default function RepoLens() {
       <section className="relative">
         <div className="absolute inset-0 bg-radial-dark" />
         <Layout className="relative z-10">
+          <div className="flex gap-2 mb-8">
+            {[["federation", "Federation graph"], ["notebook", "Notebook"]].map(([v, label]) => (
+              <button
+                key={v}
+                onClick={() => setView(v)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  view === v ? "bg-primary text-dark" : "bg-surface text-muted hover:text-light"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {view === "federation" && (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+              <div className="text-primary font-mono text-sm mb-4 tracking-widest uppercase">Repo Lens · Federation</div>
+              <h1 className="section-heading">Every repo, as one knowledge graph</h1>
+              <p className="section-subheading mb-8">
+                okgg reads what each of your local repositories says about itself — README, manifests, folders,
+                languages — and individuates them into facets and values, every edge backed by a cue word. The
+                tracker engine on your machine serves the graph; nothing leaves it.
+              </p>
+              <FederationDashboard />
+            </motion.div>
+          )}
+
+          {view === "notebook" && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <div className="text-primary font-mono text-sm mb-4 tracking-widest uppercase">Repo Lens</div>
             <h1 className="section-heading">A notebook for what your repos are about</h1>
@@ -551,6 +581,7 @@ export default function RepoLens() {
               </div>
             )}
           </motion.div>
+          )}
         </Layout>
       </section>
     </>

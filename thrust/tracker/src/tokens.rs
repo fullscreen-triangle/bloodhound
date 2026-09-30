@@ -244,7 +244,7 @@ fn api_base(a: &Account) -> String {
 pub fn issue_url(a: &Account) -> String {
     match a.kind {
         Forge::Github => format!(
-            "https://{}/settings/tokens/new?description=tracker&scopes=repo,read:org",
+            "https://{}/settings/tokens/new?description=tracker&scopes=repo,read:org,codespace",
             a.host
         ),
         Forge::Gitlab => format!(

@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const NavLink = ({ href, title, className = "" }) => {
   const router = useRouter();
-  const isActive = router.asPath === href;
+  const isActive = router.pathname === href;
 
   return (
     <Link
@@ -77,7 +77,7 @@ const DropdownMenu = ({ label, items, isFrameworkActive }) => {
 
 const MobileNavLink = ({ href, title, toggle }) => {
   const router = useRouter();
-  const isActive = router.asPath === href;
+  const isActive = router.pathname === href;
 
   const handleClick = () => {
     toggle();
@@ -156,7 +156,12 @@ const Navbar = () => {
           <NavLink href="/roadmap" title="Roadmap" />
           <NavLink href="/collaborate" title="Collaborate" />
           <NavLink href="/repo-lens" title="Repo Lens" className="text-primary" />
+          <NavLink href="/code" title="Code" className="text-primary" />
+          <NavLink href="/tracker" title="Tracker" className="text-primary" />
           <NavLink href="/cytochrome" title="Demo" className="text-primary" />
+          {/* an API route that clears the session: a full navigation, not a client-side one */}
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+          <a href="/api/auth/logout" className="text-xs text-muted hover:text-light">Log out</a>
         </nav>
       </div>
 
@@ -182,6 +187,8 @@ const Navbar = () => {
             <MobileNavLink toggle={toggle} href="/roadmap" title="Roadmap" />
             <MobileNavLink toggle={toggle} href="/collaborate" title="Collaborate" />
             <MobileNavLink toggle={toggle} href="/repo-lens" title="Repo Lens" />
+            <MobileNavLink toggle={toggle} href="/code" title="Code" />
+            <MobileNavLink toggle={toggle} href="/tracker" title="Tracker" />
             <MobileNavLink toggle={toggle} href="/cytochrome" title="Demo" />
           </motion.div>
         )}
