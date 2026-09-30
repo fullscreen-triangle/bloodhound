@@ -9,7 +9,7 @@
 
 use crate::chi;
 use crate::error::{Result, TrackerError};
-use crate::{gitops, graph};
+use crate::{gitops, graph, search};
 use crate::profile::{self, Profile};
 use crate::purpose::{self, Index};
 use crate::registry::Federation;
@@ -729,6 +729,39 @@ pub fn ops() -> Vec<Op> {
                 struct A { repo: Option<String>, message: String, #[serde(default)] paths: Vec<String>, branch: Option<String> }
                 let a: A = args(v)?;
                 gitops::commit(&repo_dir(a.repo.as_deref())?, &a.message, &a.paths, a.branch.as_deref())
+            },
+        },
+        Op {
+            name: "repo_search",
+            kind: Kind::Question,
+            network: false,
+            summary: "Search inside a repo's files (spraypaint): ranked passages with evidence lines and a verdict on whether \
+                      the repo covers the query at all — covered (one passage holds every word), partial, or declined (the \
+                      words are not there). Write the words the answer would contain, not a question. Builds the search \
+                      index on first use and after new commits.",
+            schema: || schema(json!({
+                "repo": { "type": "string", "description": REPO },
+                "query": { "type": "string", "description": "Keywords the answer would contain, e.g. \"pairing token origin\"." },
+                "k": { "type": "integer", "minimum": 1, "maximum": 50, "default": 8, "description": "Passages to return." },
+                "scenes": { "type": "array", "items": { "type": "string" }, "description": "Only these top-level folders." },
+                "commit": { "type": "boolean", "default": false, "description": "Record this search as a committed act (the count never goes down)." },
+                "refresh": { "type": "boolean", "default": false, "description": "Rebuild the index first." },
+            }), &["query"]),
+            run: |v| {
+                #[derive(Deserialize)]
+                #[serde(deny_unknown_fields)]
+                struct A {
+                    repo: Option<String>, query: String, k: Option<usize>,
+                    #[serde(default)] scenes: Vec<String>, #[serde(default)] commit: bool, #[serde(default)] refresh: bool,
+                }
+                let a: A = args(v)?;
+                let mut out = search::search(&repo_dir(a.repo.as_deref())?, &search::SearchOptions {
+                    query: &a.query, k: a.k.unwrap_or(8), scenes: &a.scenes, commit: a.commit, refresh: a.refresh,
+                })?;
+                if let Some(r) = a.repo {
+                    out["repo"] = json!(r);
+                }
+                Ok(out)
             },
         },
         // ── git on one repo ──

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
+import Passages from "@/components/tracker/Passages";
 
 /**
  * Draws a chart spec sent by the tracker engine or its chat agent:
@@ -203,6 +204,8 @@ export default function Chart({ spec, onSelect }) {
       <div ref={ref} className="relative w-full">
         {spec.type === "table" ? (
           <Table spec={spec} />
+        ) : spec.type === "passages" ? (
+          <Passages result={spec} repo={spec.repo} />
         ) : Kind ? (
           <Kind spec={spec} width={width} onTip={setTip} onSelect={onSelect} />
         ) : (

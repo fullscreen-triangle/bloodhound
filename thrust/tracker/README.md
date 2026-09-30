@@ -344,8 +344,17 @@ one, and it runs only on `POST /confirm/{id}`. The site's pages:
 | Page | What it is |
 |---|---|
 | **Repo Lens → Federation graph** | D3 force graph of repos and okgg values (hover an edge for its cue), similarity view, facet filters, charts by facet/forge/area/language/activity, the okgg V trajectory |
-| **Code** | any repo as on a forge: file tree at any branch, history, diffs; edit, create and delete files, commit (optionally on a new branch), push to a chosen origin, open a Codespace |
+| **Code** | any repo as on a forge: file tree at any branch, content search, history, diffs; edit, create and delete files, commit (optionally on a new branch), push to a chosen origin, open a Codespace |
 | **Tracker** | a chat with the local Ollama model, which uses tracker's operations as tools and answers with charts; anything that changes a repo comes back as a card you confirm. Left: repos by last commit; right: repos you looked at |
+
+Searching inside a repo (`repo_search`, the Code page's Search tab, and the chat)
+composes [spraypaint](https://github.com/fullscreen-triangle/graffiti/blob/main/specifications.md)
+0.2+: ranked passages with their evidence lines, and a verdict on whether the repo
+contains the query's words at all (`covered`, `partial`, `declined`). The tracker
+builds the index on first use and after new commits, keeps `.spraypaint/` out of
+`git status` through `.git/info/exclude`, searches as dry runs unless `commit: true`
+is asked for, withholds passages from secret-bearing files (`.env*`, `*.local.json`,
+`.claude/`, keys) and masks key-shaped strings in the rest.
 
 The chat can think with a model on this machine (`ollama:…`), Claude (`claude:…`,
 the Anthropic Messages API), or any of Hugging Face's hosted models that call tools

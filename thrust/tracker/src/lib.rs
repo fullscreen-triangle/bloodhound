@@ -36,6 +36,8 @@ pub mod purpose;
 #[doc(hidden)]
 pub mod registry;
 #[doc(hidden)]
+pub mod search;
+#[doc(hidden)]
 pub mod serve;
 #[doc(hidden)]
 pub mod sync;

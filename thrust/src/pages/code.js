@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import EngineGate, { useEngine } from "@/components/tracker/EngineGate";
+import Passages from "@/components/tracker/Passages";
 import { ago, engine, markSeen } from "@/lib/tracker/engine";
 
 /**
@@ -551,6 +552,76 @@ function CommitsTab({ repo, rev }) {
   );
 }
 
+/** Search the repo's contents with spraypaint: a verdict, then the evidence. */
+function SearchTab({ repo, initial, onOpen }) {
+  const [query, setQuery] = useState(initial || "");
+  const [result, setResult] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+  const run = async (e, q = query) => {
+    e && e.preventDefault();
+    if (!q.trim()) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const r = await engine.call("repo_search", { repo: repo.path, query: q, k: 12 });
+      const res = r.result;
+      setResult({
+        verdict: res.coverage.verdict,
+        reason: res.coverage.reason,
+        terms: res.coverage.terms,
+        withheld: res.withheld,
+        reindexed: res.reindexed,
+        items: res.results.map((p) => ({
+          path: p.path, start: p.evidence_start_line, end: p.evidence_end_line,
+          snippet: p.snippet, matched: p.matched_terms, scene: p.scene,
+        })),
+      });
+    } catch (err) {
+      setError(err.message);
+    }
+    setBusy(false);
+  };
+  // A search named in the URL (?q=…) runs on arrival.
+  useEffect(() => {
+    if (initial) run(null, initial);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [repo.path, initial]);
+  return (
+    <div className="max-w-5xl space-y-4">
+      <form onSubmit={run} className="flex gap-2">
+        <input
+          autoFocus
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="words the answer would contain, e.g. pairing token origin"
+          className="flex-1 rounded-lg border border-primary/20 bg-surface px-3 py-2 text-[13px] text-light placeholder:text-muted focus:border-primary/50 focus:outline-none"
+        />
+        <Btn tone="primary" disabled={busy || !query.trim()}>{busy ? "Searching…" : "Search"}</Btn>
+      </form>
+      <div className="text-[11px] text-muted">
+        Matches words, not meanings: <code>index</code> does not find <code>indexing</code>. The verdict says whether this repo contains the words at all.
+        The first search builds the index, which can take a while on a large repo.
+      </div>
+      <ErrorLine error={error} />
+      {result && (
+        <>
+          {result.verdict !== "covered" && result.terms && (
+            <div className="flex flex-wrap gap-2 text-[11px]">
+              {result.terms.map((t) => (
+                <span key={t.term} className={`rounded px-2 py-0.5 font-mono ${t.df === 0 ? "bg-danger/10 text-danger" : t.in_results ? "bg-primary/10 text-primary" : "bg-accent/10 text-accent"}`}>
+                  {t.term} · {t.df === 0 ? "not in repo" : t.in_results ? `in ${t.df} files` : `in ${t.df} files, not returned`}
+                </span>
+              ))}
+            </div>
+          )}
+          <Passages result={result} onOpen={onOpen} />
+        </>
+      )}
+    </div>
+  );
+}
+
 // ── the page ─────────────────────────────────────────────────────────────────
 
 function RepoPicker({ repos, current, onPick }) {
@@ -583,12 +654,13 @@ function RepoPicker({ repos, current, onPick }) {
 
 function Browser() {
   const router = useRouter();
-  const { repo: repoKey, tab = "code", path = null, rev = null } = router.query;
+  const { repo: repoKey, tab = "code", path = null, rev = null, q = "" } = router.query;
   const [repos, setRepos] = useState([]);
   const [status, setStatus] = useState(null);
   const [tree, setTree] = useState(null);
   const [error, setError] = useState(null);
-  const repo = repos.find((r) => r.key === repoKey);
+  // `repo` may be a key (distributed/bloodhound) or, from chat links, a name (bloodhound).
+  const repo = repos.find((r) => r.key === repoKey) || repos.find((r) => r.name === repoKey);
 
   const go = useCallback(
     (patch) => {
@@ -668,7 +740,7 @@ function Browser() {
         {rev && <Btn tone="accent" onClick={() => switchBranch(rev)} title="git switch — uncommitted changes come along">Switch to {rev}</Btn>}
         {repo && (
           <div className="flex gap-1 rounded-lg bg-surface p-0.5">
-            {[["code", "Code"], ["changes", `Changes${changes ? ` · ${changes}` : ""}`], ["commits", "Commits"]].map(([t, label]) => (
+            {[["code", "Code"], ["search", "Search"], ["changes", `Changes${changes ? ` · ${changes}` : ""}`], ["commits", "Commits"]].map(([t, label]) => (
               <button key={t} onClick={() => go({ tab: t })} className={`rounded-md px-3 py-1.5 text-[12px] ${tab === t ? "bg-primary text-dark font-semibold" : "text-muted hover:text-light"}`}>
                 {label}
               </button>
@@ -709,6 +781,7 @@ function Browser() {
       {repo && tab === "code" && <CodeTab repo={repo} rev={rev} path={path} setPath={(p) => go({ path: p })} tree={tree} reload={reload} />}
       {repo && tab === "changes" && (rev ? <div className="text-[12px] text-muted">Changes are in the working tree; pick “{status && status.branch} (working tree)”.</div> : <ChangesTab repo={repo} status={status} tree={tree} reload={reload} />)}
       {repo && tab === "commits" && <CommitsTab repo={repo} rev={rev} />}
+      {repo && tab === "search" && <SearchTab repo={repo} initial={q} onOpen={(p) => go({ tab: "code", path: p, rev: null, q: null })} />}
     </div>
   );
 }

@@ -23,7 +23,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 const TOOLS: &[&str] = &[
     // questions
     "repos_recent", "graph_query", "repo_status", "git_read", "repo_sense",
-    "repo_tree", "repo_file", "repo_diff", "repo_log",
+    "repo_tree", "repo_file", "repo_diff", "repo_log", "repo_search",
     "sync_status", "sync_visibility", "sync_manifest", "tokens_status", "profile_repos",
     // actions — proposals only
     "repo_write", "repo_commit", "git_exec", "push_branch", "sync_run", "sync_hide", "sync_unhide", "sync_message",
@@ -230,6 +230,26 @@ pub fn auto_charts(op: &str, args: &Value, result: &Value) -> Vec<Value> {
                 out.push(json!({ "type": "network", "title": format!("Repos about “{q}”"), "nodes": nodes, "links": links }));
             }
         }
+        "repo_search" => {
+            let items: Vec<Value> = result["results"]
+                .as_array()
+                .into_iter()
+                .flatten()
+                .map(|p| json!({
+                    "path": p["path"], "start": p["evidence_start_line"], "end": p["evidence_end_line"],
+                    "snippet": p["snippet"], "matched": p["matched_terms"], "scene": p["scene"],
+                }))
+                .collect();
+            out.push(json!({
+                "type": "passages",
+                "title": format!("“{}” in {}", args["query"].as_str().unwrap_or(""), args["repo"].as_str().unwrap_or("the repo")),
+                "repo": args["repo"],
+                "verdict": result["coverage"]["verdict"],
+                "reason": result["coverage"]["reason"],
+                "withheld": result["withheld"],
+                "items": items,
+            }));
+        }
         "tokens_status" => {
             let rows: Vec<Value> = result
                 .as_array()
@@ -360,6 +380,11 @@ fn system_prompt(focus: Option<&str>) -> String {
          - To push a branch to one forge account use push_branch. If the repo has a .sync.toml (several \
            origins with hidden paths), hide files from an origin with sync_hide and push with sync_run instead.\n\
          - Use git_read for read-only git (log, diff, show, ls-files); git_exec for anything that changes a repo.\n\
+         - To find where a repo talks about something, call repo_search with the words the answer would \
+           contain (keywords, not a question). Read coverage.verdict first: `declined` means the repo does \
+           not contain those words — say \"this repo does not mention X\", try one other form of the word at \
+           most, and never guess. `partial` means no passage holds all the words. Cite passages as \
+           path:evidence_start_line-evidence_end_line and quote only the evidence shown.\n\
          - To compare numbers, call show_chart. Keep answers short and concrete.\n",
     );
     if !names.is_empty() {
@@ -462,6 +487,15 @@ fn compact(op: &str, r: &Value) -> Value {
             c["short"].as_str().unwrap_or(""), c["date"].as_str().unwrap_or("").get(..10).unwrap_or(""),
             c["author"].as_str().unwrap_or(""), c["subject"].as_str().unwrap_or("")
         ))) }),
+        "repo_search" => json!({
+            "verdict": r["coverage"]["verdict"], "reason": r["coverage"]["reason"],
+            "terms": r["coverage"]["terms"],
+            "passages": take(&r["results"], 8, &|p| json!({
+                "cite": format!("{}:{}-{}", p["path"].as_str().unwrap_or(""), p["evidence_start_line"], p["evidence_end_line"]),
+                "matched": p["matched_terms"], "evidence": p["snippet"],
+            })),
+            "withheld_for_secrets": r["withheld"],
+        }),
         "repo_tree" => json!({
             "files": r["files"].as_array().map(Vec::len),
             "changed": Value::Array(r["files"].as_array().into_iter().flatten().filter(|f| f["state"].is_string()).cloned().collect()),
