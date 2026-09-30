@@ -347,10 +347,36 @@ one, and it runs only on `POST /confirm/{id}`. The site's pages:
 | **Code** | any repo as on a forge: file tree at any branch, history, diffs; edit, create and delete files, commit (optionally on a new branch), push to a chosen origin, open a Codespace |
 | **Tracker** | a chat with the local Ollama model, which uses tracker's operations as tools and answers with charts; anything that changes a repo comes back as a card you confirm. Left: repos by last commit; right: repos you looked at |
 
-The chat model defaults to `llama3.2` (`TRACKER_MODEL`, `OLLAMA_HOST` override).
-On a CPU-only machine the first answer after a start is slow; `serve` warms the model
-in the background, and a question stops starting new model rounds after 150 s,
-returning what it found.
+The chat can think with a model on this machine (`ollama:…`), Claude (`claude:…`,
+the Anthropic Messages API), or any of Hugging Face's hosted models that call tools
+(`hf:org/model`, through its Inference Providers router — nothing is downloaded).
+Other OpenAI-compatible services can be added to `~/.tracker/serve.toml`:
+
+```toml
+model = "claude:claude-opus-5-5"     # the default; TRACKER_MODEL overrides it
+
+[[llm]]
+name = "openai"
+base = "https://api.openai.com/v1"
+key_host = "api.openai.com"
+key_prefix = "sk-"
+models = ["gpt-5"]
+```
+
+Keys live in KeePassXC, in an entry for the API's host with username `api-key`:
+
+```bash
+tracker keys set claude    # opens the key page, reads the key, checks it, stores it
+tracker keys set hf
+tracker keys status        # which providers have one; never prints a key
+```
+
+A key must start with its provider's prefix (`sk-ant-`, `hf_`), so a website
+password saved for the same host is never sent to an API. The page warns when a
+hosted model is picked: the question and what the tracker reads for it leave the
+machine. On a CPU-only machine a local model is slow; `serve` warms it when it is the
+default, and a question stops starting new model rounds after 150 s, returning what
+it found.
 
 The site itself is behind a password: set `SITE_PASSWORD` and `AUTH_SECRET` (any
 long random string) on the Vercel project. Without both, a deployment is locked

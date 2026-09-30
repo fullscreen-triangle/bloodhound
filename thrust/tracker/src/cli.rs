@@ -80,6 +80,12 @@ pub enum Cmd {
         action: TokensCmd,
     },
 
+    /// API keys for the chat's hosted models (Claude, Hugging Face, …), kept in KeePassXC.
+    Keys {
+        #[command(subcommand)]
+        action: KeysCmd,
+    },
+
     /// List every question and action this tool offers, with its JSON argument schema.
     Describe,
 
@@ -117,6 +123,21 @@ pub enum Cmd {
         /// Directory to treat as the current repo (default: where the server starts).
         #[arg(long)]
         root: Option<PathBuf>,
+    },
+}
+
+#[derive(Subcommand)]
+pub enum KeysCmd {
+    /// Which providers have a key (never shows the keys).
+    Status,
+    /// Store a key for a provider (claude, hf, or one from serve.toml), checked first.
+    ///
+    /// Opens the page where the key is made, then reads it from stdin.
+    Set {
+        provider: String,
+        /// Do not open the key page in the browser.
+        #[arg(long)]
+        no_open: bool,
     },
 }
 
@@ -223,6 +244,7 @@ pub fn run(cli: Cli) -> Result<()> {
         Cmd::Sync { action } => crate::sync::run(action),
         Cmd::Profile { action } => crate::profile::run(action),
         Cmd::Graph { action } => cmd_graph(action),
+        Cmd::Keys { action } => cmd_keys(action),
         Cmd::Serve { port, origins, new_token } => {
             crate::serve::serve(crate::serve::load_config(port, &origins, new_token)?)
         }
@@ -540,5 +562,30 @@ fn cmd_graph(action: GraphCmd) -> Result<()> {
         GraphCmd::Recent { limit } => crate::graph::recent(limit)?,
     };
     println!("{}", pretty(&v));
+    Ok(())
+}
+
+fn cmd_keys(action: KeysCmd) -> Result<()> {
+    match action {
+        KeysCmd::Status => {
+            for k in crate::llm::key_status() {
+                let entry = k["entry"].as_str().unwrap_or("—");
+                println!("{:<8} {:<48} {entry}", k["provider"].as_str().unwrap_or(""), k["key"].as_str().unwrap_or(""));
+            }
+        }
+        KeysCmd::Set { provider, no_open } => {
+            let p = crate::llm::provider(&provider)?;
+            if let Some(url) = &p.key_url {
+                if !no_open {
+                    open_in_browser(url);
+                }
+                eprintln!("Make a key for {} at:\n  {url}", p.label);
+            }
+            eprintln!("Paste it here and press Enter (it is checked, then goes straight to KeePassXC):");
+            let mut key = String::new();
+            std::io::stdin().read_line(&mut key)?;
+            println!("{}", crate::llm::set_key(&provider, &key)?);
+        }
+    }
     Ok(())
 }

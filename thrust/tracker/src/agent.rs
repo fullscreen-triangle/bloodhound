@@ -1,16 +1,18 @@
-//! A chat agent over the tracker's operations, run by a local Ollama model.
+//! A chat agent over the tracker's operations, run by a local Ollama model, Claude,
+//! or a hosted model on Hugging Face (see `llm`).
 //!
 //! The model sees a chosen subset of [`crate::api`] operations as tools. Questions
 //! run as soon as it asks. Actions never run here: each becomes a [`Proposal`] kept
 //! in this process, and runs only when a person confirms it (see `serve`). The model
 //! is told so, and is given the proposal ids to report back.
 //!
-//! Results that have a natural picture â€” recent commits, a repo's history, which
-//! repos a query touches â€” come back with a chart spec the UI draws; the model can
+//! Results that have a natural picture — recent commits, a repo's history, which
+//! repos a query touches — come back with a chart spec the UI draws; the model can
 //! also draw bar and pie charts itself with the `show_chart` tool.
 
 use crate::api::{self, Kind};
 use crate::error::{Result, TrackerError};
+use crate::llm::{self, Call, ToolResult, ToolSpec, Turn};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 use std::collections::HashMap;
@@ -23,29 +25,19 @@ const TOOLS: &[&str] = &[
     "repos_recent", "graph_query", "repo_status", "git_read", "repo_sense",
     "repo_tree", "repo_file", "repo_diff", "repo_log",
     "sync_status", "sync_visibility", "sync_manifest", "tokens_status", "profile_repos",
-    // actions â€” proposals only
+    // actions — proposals only
     "repo_write", "repo_commit", "git_exec", "push_branch", "sync_run", "sync_hide", "sync_unhide", "sync_message",
     "codespace_open", "graph_build",
 ];
-const MAX_ROUNDS: usize = 5;
+/// Model rounds per question: a small local model gets fewer, since each is slow.
+const MAX_ROUNDS_LOCAL: usize = 5;
+const MAX_ROUNDS_HOSTED: usize = 10;
 /// What the model reads of one tool result. Every round re-reads the whole
 /// conversation, and on a CPU-only Ollama that is what the wait is made of.
 const TOOL_RESULT_CHARS: usize = 3000;
 /// No new model round starts after this; what was found is returned as it is.
 const TIME_BUDGET: Duration = Duration::from_secs(150);
-pub const DEFAULT_MODEL: &str = "llama3.2";
-
-fn ollama_base() -> String {
-    std::env::var("OLLAMA_HOST")
-        .ok()
-        .filter(|h| !h.is_empty())
-        .map(|h| if h.starts_with("http") { h } else { format!("http://{h}") })
-        .unwrap_or_else(|| "http://127.0.0.1:11434".into())
-        .trim_end_matches('/')
-        .to_string()
-}
-
-// â”€â”€ proposals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── proposals ────────────────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Proposal {
@@ -98,7 +90,7 @@ fn preview(op: &str, args: &Value) -> String {
             "git commit -m {:?}{}{}{repo}",
             args["message"].as_str().unwrap_or(""),
             args["branch"].as_str().map(|b| format!(" on branch {b}")).unwrap_or_default(),
-            if args["paths"].as_array().is_some_and(|p| !p.is_empty()) { format!(" â€” only {}", words(&args["paths"])) } else { " â€” all changes".into() }
+            if args["paths"].as_array().is_some_and(|p| !p.is_empty()) { format!(" — only {}", words(&args["paths"])) } else { " — all changes".into() }
         ),
         "codespace_open" => format!(
             "open a GitHub Codespace{}{repo}",
@@ -184,7 +176,7 @@ fn check_args(schema: &Value, args: &Value) -> Result<()> {
     Ok(())
 }
 
-// â”€â”€ charts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── charts ───────────────────────────────────────────────────────────────────
 
 /// Pictures for results that have an obvious one. Specs, not drawings: the UI draws.
 pub fn auto_charts(op: &str, args: &Value, result: &Value) -> Vec<Value> {
@@ -207,11 +199,11 @@ pub fn auto_charts(op: &str, args: &Value, result: &Value) -> Vec<Value> {
                 .as_array()
                 .into_iter()
                 .flatten()
-                .map(|c| json!({ "label": c["subject"], "date": c["date"], "detail": format!("{} Â· {}", c["sha"].as_str().unwrap_or(""), c["author"].as_str().unwrap_or("")) }))
+                .map(|c| json!({ "label": c["subject"], "date": c["date"], "detail": format!("{} · {}", c["sha"].as_str().unwrap_or(""), c["author"].as_str().unwrap_or("")) }))
                 .collect();
             if !items.is_empty() {
                 let repo = args["repo"].as_str().unwrap_or("repo");
-                out.push(json!({ "type": "timeline", "title": format!("Recent commits â€” {repo}"), "items": items }));
+                out.push(json!({ "type": "timeline", "title": format!("Recent commits — {repo}"), "items": items }));
             }
         }
         "graph_query" => {
@@ -235,7 +227,7 @@ pub fn auto_charts(op: &str, args: &Value, result: &Value) -> Vec<Value> {
             }
             if nodes.len() > 1 {
                 let q = args["query"].as_str().unwrap_or("");
-                out.push(json!({ "type": "network", "title": format!("Repos about â€œ{q}â€"), "nodes": nodes, "links": links }));
+                out.push(json!({ "type": "network", "title": format!("Repos about “{q}”"), "nodes": nodes, "links": links }));
             }
         }
         "tokens_status" => {
@@ -280,7 +272,7 @@ fn model_chart(args: &Value) -> std::result::Result<Value, String> {
     Ok(json!({ "type": kind, "title": args["title"].as_str().unwrap_or(""), "items": items }))
 }
 
-// â”€â”€ the loop â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── the loop ─────────────────────────────────────────────────────────────────
 
 #[derive(Debug, Deserialize)]
 pub struct ChatRequest {
@@ -314,23 +306,19 @@ pub struct ChatReply {
     pub proposals: Vec<Proposal>,
 }
 
-fn tool_specs() -> Vec<Value> {
-    let mut specs: Vec<Value> = api::ops()
+fn tool_specs() -> Vec<ToolSpec> {
+    let mut specs: Vec<ToolSpec> = api::ops()
         .into_iter()
         .filter(|o| TOOLS.contains(&o.name))
         .map(|o| {
             let tag = if o.kind == Kind::Action { "ACTION (needs the user's confirmation): " } else { "" };
-            json!({ "type": "function", "function": {
-                "name": o.name,
-                "description": format!("{tag}{}", o.summary),
-                "parameters": o.schema(),
-            }})
+            ToolSpec { name: o.name.into(), description: format!("{tag}{}", o.summary), schema: o.schema() }
         })
         .collect();
-    specs.push(json!({ "type": "function", "function": {
-        "name": "show_chart",
-        "description": "Draw a bar or pie chart for the user, e.g. files per language or commits per repo.",
-        "parameters": {
+    specs.push(ToolSpec {
+        name: "show_chart".into(),
+        description: "Draw a bar or pie chart for the user, e.g. files per language or commits per repo.".into(),
+        schema: json!({
             "type": "object",
             "properties": {
                 "type": { "type": "string", "enum": ["bar", "pie"] },
@@ -339,8 +327,8 @@ fn tool_specs() -> Vec<Value> {
                 "values": { "type": "array", "items": { "type": "number" } },
             },
             "required": ["type", "labels", "values"],
-        },
-    }}));
+        }),
+    });
     specs
 }
 
@@ -386,59 +374,23 @@ fn system_prompt(focus: Option<&str>) -> String {
     s
 }
 
-fn ollama_chat(model: &str, messages: &[Value], tools: &[Value]) -> Result<Value> {
-    let url = format!("{}/api/chat", ollama_base());
-    let body = json!({
-        "model": model, "messages": messages, "tools": tools, "stream": false, "keep_alive": "30m",
-        "options": { "temperature": 0.1, "num_ctx": 8192 },
-    });
-    let agent = ureq::AgentBuilder::new().timeout(Duration::from_secs(600)).build();
-    match agent.post(&url).send_json(body) {
-        Ok(r) => r.into_json().map_err(|e| TrackerError::Internal(format!("Ollama reply unreadable: {e}"))),
-        Err(ureq::Error::Status(code, r)) => {
-            let text = r.into_string().unwrap_or_default();
-            Err(TrackerError::Forge(format!("Ollama refused ({code}): {}", text.trim())))
-        }
-        Err(e) => Err(TrackerError::Forge(format!(
-            "Ollama is not reachable at {} ({e}); start it with `ollama serve`",
-            ollama_base()
-        ))),
-    }
-}
-
-/// Have Ollama read the system prompt and tool list once, so the first question
-/// finds them in its prompt cache. On a CPU-only machine that first read is minutes.
+/// Warm the default model if it is a local one, so the first question is not the
+/// one that waits for Ollama to read the tool list.
 pub fn warm() {
-    let model = std::env::var("TRACKER_MODEL").unwrap_or_else(|_| DEFAULT_MODEL.into());
-    let body = json!({
-        "model": model,
-        "messages": [
-            { "role": "system", "content": system_prompt(None) },
-            { "role": "user", "content": "ready?" },
-        ],
-        "tools": tool_specs(), "stream": false, "keep_alive": "30m",
-        "options": { "temperature": 0.1, "num_ctx": 8192, "num_predict": 1 },
-    });
+    let spec = llm::default_model();
+    if !llm::is_local(&spec) {
+        return;
+    }
     let started = std::time::Instant::now();
-    let agent = ureq::AgentBuilder::new().timeout(Duration::from_secs(900)).build();
-    match agent.post(&format!("{}/api/chat", ollama_base())).send_json(body) {
-        Ok(_) => eprintln!("chat model {model} ready ({}s)", started.elapsed().as_secs()),
-        Err(e) => eprintln!("chat model not warmed ({e}); the first question will be slow"),
+    match llm::warm(&spec, &system_prompt(None), &tool_specs()) {
+        Ok(()) => eprintln!("chat model {spec} ready ({}s)", started.elapsed().as_secs()),
+        Err(e) => eprintln!("chat model {spec} not warmed ({e}); the first question will be slow"),
     }
 }
 
-/// Installed Ollama models.
+/// Every model the chat can use, grouped by provider, with the default.
 pub fn models() -> Result<Value> {
-    let url = format!("{}/api/tags", ollama_base());
-    let r = ureq::AgentBuilder::new()
-        .timeout(Duration::from_secs(5))
-        .build()
-        .get(&url)
-        .call()
-        .map_err(|e| TrackerError::Forge(format!("Ollama is not reachable at {} ({e})", ollama_base())))?;
-    let v: Value = r.into_json().map_err(|e| TrackerError::Internal(e.to_string()))?;
-    let names: Vec<Value> = v["models"].as_array().into_iter().flatten().map(|m| m["name"].clone()).collect();
-    Ok(json!({ "models": names, "default": DEFAULT_MODEL }))
+    Ok(llm::models())
 }
 
 /// Tool-call arguments as the operation expects them: nulls dropped, and a git
@@ -500,13 +452,13 @@ fn compact(op: &str, r: &Value) -> Value {
             "uncommitted": r["changes"].as_array().map(Vec::len),
             "changes": take(&r["changes"], 15, &|c| c.clone()),
             "commits": take(&r["commits"], 10, &|c| json!(format!(
-                "{} {} {} â€” {}",
+                "{} {} {} — {}",
                 c["sha"].as_str().unwrap_or(""), c["date"].as_str().unwrap_or("").get(..10).unwrap_or(""),
                 c["author"].as_str().unwrap_or(""), c["subject"].as_str().unwrap_or("")
             ))),
         }),
         "repo_log" => json!({ "commits": take(&r["commits"], 15, &|c| json!(format!(
-            "{} {} {} â€” {}",
+            "{} {} {} — {}",
             c["short"].as_str().unwrap_or(""), c["date"].as_str().unwrap_or("").get(..10).unwrap_or(""),
             c["author"].as_str().unwrap_or(""), c["subject"].as_str().unwrap_or("")
         ))) }),
@@ -528,95 +480,135 @@ fn clip(v: &Value) -> String {
     while !s.is_char_boundary(cut) {
         cut -= 1;
     }
-    format!("{}â€¦ (truncated, {} more characters)", &s[..cut], s.len() - cut)
+    format!("{}… (truncated, {} more characters)", &s[..cut], s.len() - cut)
+}
+
+/// History from the page as a conversation a model accepts: empty messages
+/// dropped, and neighbours with the same role joined.
+fn history(messages: &[Message]) -> Vec<Turn> {
+    let mut out: Vec<(String, String)> = Vec::new();
+    for m in messages {
+        let text = m.content.trim();
+        if text.is_empty() || !(m.role == "user" || m.role == "assistant") {
+            continue;
+        }
+        match out.last_mut() {
+            Some((role, prev)) if *role == m.role => {
+                prev.push_str("\n\n");
+                prev.push_str(text);
+            }
+            _ => out.push((m.role.clone(), text.to_string())),
+        }
+    }
+    // A conversation starts with the user.
+    while out.first().is_some_and(|(r, _)| r != "user") {
+        out.remove(0);
+    }
+    out.into_iter()
+        .map(|(role, text)| {
+            if role == "user" {
+                Turn::User(text)
+            } else {
+                Turn::Assistant { text, calls: Vec::new(), raw: Value::Null }
+            }
+        })
+        .collect()
+}
+
+/// Run one tool call the model asked for: a question runs, an action becomes a
+/// proposal, a chart is drawn.
+fn run_call(c: &Call, steps: &mut Vec<Step>, charts: &mut Vec<Value>, made: &mut Vec<Proposal>) -> ToolResult {
+    let name = c.name.clone();
+    let args = normalise(&name, &c.args);
+    let (content, is_error) = if name == "show_chart" {
+        match model_chart(&args) {
+            Ok(chart) => {
+                charts.push(chart);
+                ("The chart is shown to the user.".to_string(), false)
+            }
+            Err(e) => (format!("error: {e}"), true),
+        }
+    } else if !TOOLS.contains(&name.as_str()) {
+        (format!("error: there is no tool {name:?}"), true)
+    } else {
+        let kind = api::ops().iter().find(|o| o.name == name).map(|o| o.kind);
+        match kind {
+            Some(Kind::Action) => match propose(&name, args.clone()) {
+                Ok(p) => {
+                    steps.push(Step { op: name.clone(), args, kind: "proposal", ok: true, error: None });
+                    let text = format!(
+                        "Proposed as {} — `{}`. It has NOT run; it waits for the user's confirmation.",
+                        p.id, p.preview
+                    );
+                    made.push(p);
+                    (text, false)
+                }
+                Err(e) => {
+                    steps.push(Step { op: name.clone(), args, kind: "proposal", ok: false, error: Some(e.to_string()) });
+                    (format!("error: {e}"), true)
+                }
+            },
+            _ => match api::call(&name, args.clone()) {
+                Ok(result) => {
+                    charts.extend(auto_charts(&name, &args, &result));
+                    steps.push(Step { op: name.clone(), args, kind: "question", ok: true, error: None });
+                    (clip(&compact(&name, &result)), false)
+                }
+                Err(e) => {
+                    steps.push(Step { op: name.clone(), args, kind: "question", ok: false, error: Some(e.to_string()) });
+                    (
+                        format!(
+                            "FAILED — this call returned no data ({}): {e}. Fix the arguments and call again, or tell the user it failed.",
+                            e.code()
+                        ),
+                        true,
+                    )
+                }
+            },
+        }
+    };
+    ToolResult { id: c.id.clone(), name, content, is_error }
 }
 
 pub fn chat(req: ChatRequest) -> Result<ChatReply> {
-    let model = req
-        .model
-        .clone()
-        .or_else(|| std::env::var("TRACKER_MODEL").ok())
-        .unwrap_or_else(|| DEFAULT_MODEL.into());
+    let model = req.model.clone().filter(|m| !m.is_empty()).unwrap_or_else(llm::default_model);
+    let local = llm::is_local(&model);
+    let max_rounds = if local { MAX_ROUNDS_LOCAL } else { MAX_ROUNDS_HOSTED };
     let tools = tool_specs();
-    let mut messages: Vec<Value> = vec![json!({ "role": "system", "content": system_prompt(req.focus.as_deref()) })];
-    for m in &req.messages {
-        if m.role == "user" || m.role == "assistant" {
-            messages.push(json!({ "role": m.role, "content": m.content }));
-        }
+    let system = system_prompt(req.focus.as_deref());
+    let mut turns = history(&req.messages);
+    if !matches!(turns.last(), Some(Turn::User(_))) {
+        return Err(TrackerError::BadArgs("the conversation must end with a question from the user".into()));
     }
     let mut steps = Vec::new();
     let mut charts = Vec::new();
     let mut made = Vec::new();
 
     let started = std::time::Instant::now();
-    for round in 0..MAX_ROUNDS {
+    for round in 0..max_rounds {
         if round > 0 && started.elapsed() > TIME_BUDGET {
             let ran: Vec<&str> = steps.iter().map(|s: &Step| s.op.as_str()).collect();
             return Ok(ChatReply {
                 reply: format!(
-                    "The local model ran out of time before writing an answer. I ran {}; the results are below.",
+                    "The model ran out of time before writing an answer. I ran {}; the results are below.",
                     ran.join(", ")
                 ),
                 model, steps, charts, proposals: made,
             });
         }
-        let resp = ollama_chat(&model, &messages, if round + 1 < MAX_ROUNDS { &tools } else { &[] })?;
-        let msg = resp["message"].clone();
-        let calls = msg["tool_calls"].as_array().cloned().unwrap_or_default();
-        if calls.is_empty() {
-            let mut reply = msg["content"].as_str().unwrap_or("").trim().to_string();
-            if made.is_empty() && reply.to_lowercase().contains("propos") {
-                reply.push_str("\n\n(Note from the tracker: nothing was actually proposed in this turn â€” there is nothing to confirm.)");
+        // On the last round, no tools: the model must answer with what it has.
+        let offered: &[ToolSpec] = if round + 1 < max_rounds { &tools } else { &[] };
+        let reply = llm::complete(&model, &system, &turns, offered)?;
+        if reply.calls.is_empty() {
+            let mut text = reply.text;
+            if made.is_empty() && text.to_lowercase().contains("propos") {
+                text.push_str("\n\n(Note from the tracker: nothing was actually proposed in this turn — there is nothing to confirm.)");
             }
-            return Ok(ChatReply { reply, model, steps, charts, proposals: made });
+            return Ok(ChatReply { reply: text, model, steps, charts, proposals: made });
         }
-        messages.push(msg);
-        for c in calls {
-            let name = c["function"]["name"].as_str().unwrap_or("").to_string();
-            let args = normalise(&name, &c["function"]["arguments"]);
-            let content = if name == "show_chart" {
-                match model_chart(&args) {
-                    Ok(chart) => {
-                        charts.push(chart);
-                        "The chart is shown to the user.".to_string()
-                    }
-                    Err(e) => format!("error: {e}"),
-                }
-            } else if !TOOLS.contains(&name.as_str()) {
-                format!("error: there is no tool {name:?}")
-            } else {
-                let kind = api::ops().iter().find(|o| o.name == name).map(|o| o.kind);
-                match kind {
-                    Some(Kind::Action) => match propose(&name, args.clone()) {
-                        Ok(p) => {
-                            steps.push(Step { op: name.clone(), args, kind: "proposal", ok: true, error: None });
-                            let text = format!(
-                                "Proposed as {} â€” `{}`. It has NOT run; it waits for the user's confirmation.",
-                                p.id, p.preview
-                            );
-                            made.push(p);
-                            text
-                        }
-                        Err(e) => {
-                            steps.push(Step { op: name.clone(), args, kind: "proposal", ok: false, error: Some(e.to_string()) });
-                            format!("error: {e}")
-                        }
-                    },
-                    _ => match api::call(&name, args.clone()) {
-                        Ok(result) => {
-                            charts.extend(auto_charts(&name, &args, &result));
-                            steps.push(Step { op: name.clone(), args, kind: "question", ok: true, error: None });
-                            clip(&compact(&name, &result))
-                        }
-                        Err(e) => {
-                            steps.push(Step { op: name.clone(), args, kind: "question", ok: false, error: Some(e.to_string()) });
-                            format!("FAILED â€” this call returned no data ({}): {e}. Fix the arguments and call again, or tell the user it failed.", e.code())
-                        }
-                    },
-                }
-            };
-            messages.push(json!({ "role": "tool", "tool_name": name, "content": content }));
-        }
+        let results: Vec<ToolResult> = reply.calls.iter().map(|c| run_call(c, &mut steps, &mut charts, &mut made)).collect();
+        turns.push(Turn::Assistant { text: reply.text, calls: reply.calls, raw: reply.raw });
+        turns.push(Turn::Results(results));
     }
     Ok(ChatReply {
         reply: "I stopped after several tool calls without a final answer; the steps above show what I found.".into(),
@@ -669,6 +661,15 @@ mod tests {
         assert!(model_chart(&json!({ "type": "bar", "labels": ["a"], "values": [1] })).is_ok());
         assert!(model_chart(&json!({ "type": "bar", "labels": ["a", "b"], "values": [1] })).is_err());
         assert!(model_chart(&json!({ "type": "network", "labels": ["a"], "values": [1] })).is_err());
+    }
+
+    #[test]
+    fn page_history_becomes_a_valid_conversation() {
+        let m = |r: &str, c: &str| Message { role: r.into(), content: c.into() };
+        let turns = history(&[m("assistant", "hi"), m("user", "a"), m("assistant", ""), m("user", "b"), m("assistant", "x")]);
+        assert_eq!(turns.len(), 2);
+        assert!(matches!(&turns[0], Turn::User(t) if t == "a\n\nb"));
+        assert!(matches!(&turns[1], Turn::Assistant { text, .. } if text == "x"));
     }
 
     #[test]

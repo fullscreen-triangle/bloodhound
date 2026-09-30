@@ -28,6 +28,8 @@ pub mod gitops;
 #[doc(hidden)]
 pub mod graph;
 #[doc(hidden)]
+pub mod llm;
+#[doc(hidden)]
 pub mod profile;
 #[doc(hidden)]
 pub mod purpose;

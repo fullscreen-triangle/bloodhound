@@ -117,9 +117,15 @@ fn helper_failure(stderr: &str) -> TrackerError {
 
 /// The token KeePassXC holds for this account, if any.
 fn keeper_get(a: &Account, wait: bool) -> Result<Option<String>> {
+    keeper_secret(&a.host, &a.user, wait)
+}
+
+/// The secret of the KeePassXC entry for `https://host` with this username, if any.
+/// Also used for API keys (see `llm`).
+pub(crate) fn keeper_secret(host: &str, user: &str, wait: bool) -> Result<Option<String>> {
     let mut args = unlock_args(wait);
     args.push("get");
-    let input = format!("protocol=https\nhost={}\nusername={}\n\n", a.host, a.user);
+    let input = format!("protocol=https\nhost={host}\nusername={user}\n\n");
     let (ok, stdout, stderr) = helper(&args, &input)?;
     if !ok {
         return if stderr.contains("NoLoginsFound") {
@@ -137,12 +143,18 @@ fn keeper_get(a: &Account, wait: bool) -> Result<Option<String>> {
 
 /// Write `token` into KeePassXC for this account, updating its entry in place.
 fn keeper_store(a: &Account, token: &str, wait: bool) -> Result<()> {
+    keeper_write(&a.host, &a.user, token, wait)
+}
+
+/// Store an API key (see `llm`), waiting for KeePassXC to be unlocked.
+pub(crate) fn keeper_put(host: &str, user: &str, secret: &str) -> Result<()> {
+    keeper_write(host, user, secret, true)
+}
+
+fn keeper_write(host: &str, user: &str, token: &str, wait: bool) -> Result<()> {
     let mut args = unlock_args(wait);
     args.push("store");
-    let input = format!(
-        "protocol=https\nhost={}\nusername={}\npassword={token}\n\n",
-        a.host, a.user
-    );
+    let input = format!("protocol=https\nhost={host}\nusername={user}\npassword={token}\n\n");
     let (ok, _, stderr) = helper(&args, &input)?;
     // The helper exits 0 even when KeePassXC refused, so read what it said.
     if !ok || stderr.contains("ERRO") {

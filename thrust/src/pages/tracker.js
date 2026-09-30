@@ -10,7 +10,8 @@ import { ago, engine, markSeen, seenRepos } from "@/lib/tracker/engine";
 /**
  * The federated tracker as a conversation.
  *
- * Ask about your repos and a local Ollama model answers with the tracker's own
+ * Ask about your repos and a model — local Ollama, Claude, or one hosted on Hugging
+ * Face — answers with the tracker's own
  * operations as tools — charts included. Ask it to do something (push a branch to
  * one forge, hide files from one origin, open a Codespace) and it comes back as a
  * proposal you confirm; nothing that changes a repo runs on the model's say-so.
@@ -19,6 +20,10 @@ import { ago, engine, markSeen, seenRepos } from "@/lib/tracker/engine";
  */
 
 const STORE = "tracker.chat";
+const MODEL_KEY = "tracker.model";
+
+/** A picker label: the model id without its provider prefix. */
+const shortName = (spec) => spec.slice(spec.indexOf(":") + 1);
 
 function load() {
   try {
@@ -132,7 +137,7 @@ function Chat({ status }) {
   const [recent, setRecent] = useState([]);
   const [seen, setSeen] = useState([]);
   const [focus, setFocus] = useState(null);
-  const [models, setModels] = useState([]);
+  const [groups, setGroups] = useState([]); // [{provider, label, local, models}]
   const [model, setModel] = useState("");
   const [railErr, setRailErr] = useState(null);
   const bottom = useRef(null);
@@ -143,8 +148,15 @@ function Chat({ status }) {
     setSeen(seenRepos());
     engine.recent(30).then((r) => setRecent(r.repos)).catch((e) => setRailErr(e.message));
     engine.models().then((r) => {
-      setModels(r.models || []);
-      setModel((r.models || []).find((m) => m.startsWith(r.default)) || (r.models || [])[0] || "");
+      const gs = (r.providers || []).filter((g) => g.models.length > 0);
+      setGroups(gs);
+      const all = gs.flatMap((g) => g.models);
+      let saved = "";
+      try {
+        saved = window.localStorage.getItem(MODEL_KEY) || "";
+      } catch {}
+      const pick = [saved, r.default].find((m) => m && all.includes(m)) || all.find((m) => m.startsWith(r.default)) || all[0] || "";
+      setModel(pick);
     }).catch(() => {});
   }, []);
 
@@ -194,6 +206,15 @@ function Chat({ status }) {
     }
   };
 
+  const chooseModel = (m) => {
+    setModel(m);
+    try {
+      window.localStorage.setItem(MODEL_KEY, m);
+    } catch {}
+  };
+  const group = groups.find((g) => g.models.includes(model));
+  const hosted = group && !group.local;
+
   const clear = () => {
     setMessages([]);
     save([]);
@@ -233,9 +254,13 @@ function Chat({ status }) {
             <span className="text-[11px] text-muted">pick a repo on either side to focus the conversation</span>
           )}
           <div className="ml-auto flex items-center gap-2">
-            {models.length > 0 && (
-              <select value={model} onChange={(e) => setModel(e.target.value)} className="rounded-lg border border-primary/15 bg-surface px-2 py-1 text-[11px] text-light">
-                {models.map((m) => <option key={m} value={m}>{m}</option>)}
+            {groups.length > 0 && (
+              <select value={model} onChange={(e) => chooseModel(e.target.value)} className="max-w-[260px] rounded-lg border border-primary/15 bg-surface px-2 py-1 text-[11px] text-light">
+                {groups.map((g) => (
+                  <optgroup key={g.provider} label={g.local ? "On this machine" : g.label}>
+                    {g.models.map((m) => <option key={m} value={m}>{shortName(m)}</option>)}
+                  </optgroup>
+                ))}
               </select>
             )}
             <button onClick={clear} className="text-[11px] text-muted hover:text-light">clear</button>
@@ -243,12 +268,18 @@ function Chat({ status }) {
           </div>
         </header>
 
+        {hosted && (
+          <div className="border-b border-accent/20 bg-accent/5 px-5 py-1.5 text-[11px] text-accent">
+            Hosted model: your questions and what the tracker reads for them (repo names, commits, file contents) go to {group.label}.
+            Pick a model under “On this machine” for confidential repos.
+          </div>
+        )}
         <div className="flex-1 space-y-6 overflow-y-auto px-6 py-5">
           {messages.length === 0 && (
             <div className="mx-auto max-w-2xl pt-10 text-center">
               <div className="mb-2 text-lg font-semibold text-light">Ask about your repos, or tell the tracker what to do</div>
               <p className="mb-6 text-sm text-muted">
-                Answers come from your local Ollama model using the tracker&apos;s own operations. Anything that would change a repo
+                Answers come from the model you pick — on this machine, or hosted — using the tracker&apos;s own operations. Anything that would change a repo
                 or a forge is shown to you first and runs only when you confirm it.
               </p>
               <div className="grid grid-cols-2 gap-2 md:grid-cols-1">
@@ -264,7 +295,7 @@ function Chat({ status }) {
           {busy && (
             <div className="flex items-center gap-3 text-sm text-muted">
               <span className="h-2 w-2 animate-pulse rounded-full bg-primary" />
-              thinking with {model || "the local model"}… {elapsed}s
+              thinking with {shortName(model) || "the model"}… {elapsed}s
               <button onClick={() => abort.current && abort.current.abort()} className="text-[11px] underline hover:text-light">stop</button>
             </div>
           )}
