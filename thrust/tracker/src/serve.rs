@@ -26,8 +26,8 @@ use tiny_http::{Header, Method, Request, Response, Server};
 pub const DEFAULT_PORT: u16 = 8734;
 const MAX_BODY: u64 = 1 << 20;
 const DEFAULT_ORIGINS: &[&str] = &[
-    "https://bloodhound-gamma.vercel.app",
     "https://st-hubert-bloodhound.vercel.app",
+    "https://bloodhound-gamma.vercel.app",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ];
