@@ -123,16 +123,24 @@ fn keeper_get(a: &Account, wait: bool) -> Result<Option<String>> {
 /// The secret of the KeePassXC entry for `https://host` with this username, if any.
 /// Also used for API keys (see `llm`).
 pub(crate) fn keeper_secret(host: &str, user: &str, wait: bool) -> Result<Option<String>> {
-    let mut args = unlock_args(wait);
+    // Only the Git group, where tracker stores: the helper returns one entry per
+    // site and ignores the username, so outside it a website login saved for the
+    // same host (say, imported from a browser) would come back instead.
+    let mut args = vec!["--git-groups"];
+    args.extend(unlock_args(wait));
     args.push("get");
     let input = format!("protocol=https\nhost={host}\nusername={user}\n\n");
     let (ok, stdout, stderr) = helper(&args, &input)?;
     if !ok {
-        return if stderr.contains("NoLoginsFound") {
+        return if stderr.contains("NoLoginsFound") || stderr.contains("No matching logins") {
             Ok(None)
         } else {
             Err(helper_failure(&stderr))
         };
+    }
+    // An entry for another user on the same host is not this one.
+    if stdout.lines().find_map(|l| l.strip_prefix("username=")).is_some_and(|u| u != user) {
+        return Ok(None);
     }
     Ok(stdout
         .lines()
