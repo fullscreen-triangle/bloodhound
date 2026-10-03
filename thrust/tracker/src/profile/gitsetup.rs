@@ -16,7 +16,9 @@ use crate::error::{Result, TrackerError};
 use std::path::PathBuf;
 use std::process::Command;
 
-const HELPER: &str = "keepassxc";
+/// Only the Git group: elsewhere the helper may return a website login saved for
+/// the same host (one imported from a browser, say), which forges reject.
+const HELPER: &str = "keepassxc --git-groups";
 
 fn helper_installed() -> bool {
     Command::new("git-credential-keepassxc")
@@ -40,7 +42,7 @@ fn inherited_helpers() -> Vec<String> {
             String::from_utf8_lossy(&o.stdout)
                 .lines()
                 .map(str::trim)
-                .filter(|h| !h.is_empty() && *h != HELPER)
+                .filter(|h| !h.is_empty() && !h.starts_with("keepassxc"))
                 .map(str::to_string)
                 .collect()
         })
